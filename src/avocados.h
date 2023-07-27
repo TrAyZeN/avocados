@@ -1,0 +1,6 @@
+#ifndef AVOCADOS_AVOCADOS_H_
+#define AVOCADOS_AVOCADOS_H_
+
+#define KERNEL_STACK_SIZE 8192
+
+#endif /* ! AVOCADOS_AVOCADOS_H_ */
