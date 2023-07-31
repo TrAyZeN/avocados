@@ -195,10 +195,12 @@ init_first_page_table_loop:
     lea pml4, %eax
     mov %eax, %cr3
 
+    // TODO: CPUID
     // Enable IA-32e mode (see Vol. 3A 2.2.1)
+    // Also enables page access restrictions
     mov $MSR_IA32_EFER, %ecx
     rdmsr
-    or $IA32_EFER_LME, %eax
+    or $(IA32_EFER_LME | IA32_EFER_NXE), %eax
     wrmsr
 
     // Enable paging

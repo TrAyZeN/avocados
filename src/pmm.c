@@ -116,7 +116,9 @@ void pmm_init(const struct multiboot_tag_mmap *mmap_tag) {
             *pde = (struct pde){
                 .present = 1,
                 .rw = 1,
+                .us = 0,
                 .addr = BIT_RANGE(phys_addr, 12, 51),
+                .xd = 1,
             };
 
             // Zero initialize the table so that present bits are 0
@@ -138,7 +140,9 @@ void pmm_init(const struct multiboot_tag_mmap *mmap_tag) {
             *pte = (struct pte){
                 .present = 1,
                 .rw = 1,
+                .us = 0,
                 .addr = BIT_RANGE(phys_addr, 12, 51),
+                .xd = 1,
             };
         }
 

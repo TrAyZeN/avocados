@@ -11,7 +11,12 @@
 // 5-level paging/4-level paging
 #define CR4_LA57 (1 << 12)
 
+// Extended feature enable register (See Vol. 3A 2.2.1)
+// Enables IA-32e mode operation
 #define IA32_EFER_LME (1 << 8)
+// Enables page access restriction by preventing instruction fetches from PAE
+// pages with XD bit set.
+#define IA32_EFER_NXE (1 << 11)
 
 // MSR values
 // See Vol. 4
