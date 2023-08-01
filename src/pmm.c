@@ -50,6 +50,10 @@ static struct memory_map *memory_map = NULL;
 void pmm_init(const struct multiboot_tag_mmap *mmap_tag) {
     kassert(memory_map == NULL);
 
+    log(LOG_LEVEL_WARN,
+        "PMM: Physical memory outside %lx-%lx will be considered free\n",
+        (uint64_t)&_skern, (uint64_t)&_ekern);
+
     // Copy available memory map entries on the stack (in kernel range)
     uint32_t num_available_mmap_entries = 0;
     struct multiboot_mmap_entry available_mmap_entries[MAX_MMAP_ENTRIES] = {
@@ -190,6 +194,7 @@ void pmm_init(const struct multiboot_tag_mmap *mmap_tag) {
                 << (frame_idx % BITMAP_CELL_BITS);
         }
 
+        // TODO: Remove that
         if (first) {
             kprintf("%lx\n", curr_memory_map->bitmap[0]);
         }

@@ -26,6 +26,7 @@ struct pseudo_descriptor64 {
 } __packed;
 
 void memset(uint8_t *mem, uint8_t value, uint64_t n);
+int strncmp(const char *s1, const char *s2, uint64_t n);
 
 // ALIGN must be a power of two
 /* #define ALIGN_UP(VALUE, ALIGN) ((VALUE) & ~((ALIGN)-1)) */

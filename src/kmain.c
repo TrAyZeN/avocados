@@ -18,6 +18,7 @@
 #include "pmm.h"
 #include "serial.h"
 #include "test.h"
+#include "utils.h"
 #include "vmm.h"
 
 #define MAGIC_BREAKPOINT __asm__ volatile("xchgw %bx, %bx")
@@ -33,7 +34,7 @@ noreturn void kmain(multiboot_uint32_t magic, uint64_t addr) {
         kpanic("Invalid multiboot2 magic: %x\n", magic);
     }
 
-    struct multiboot_tag *tag =
+    const struct multiboot_tag *tag =
         multiboot_find_tag((void *)(addr + 8), MULTIBOOT_TAG_TYPE_FRAMEBUFFER);
     if (tag->type == MULTIBOOT_TAG_TYPE_END) {
         kpanic("No framebuffer info provided by the bootloader\n");
@@ -58,63 +59,36 @@ noreturn void kmain(multiboot_uint32_t magic, uint64_t addr) {
         kpanic("No memory map provided by the bootloader");
     }
 
-    struct multiboot_tag_mmap *mmap_tag = (void *)tag;
+    const struct multiboot_tag_mmap *mmap_tag = (void *)tag;
     multiboot_print_mmap(mmap_tag);
 
     tag = multiboot_find_tag((void *)(addr + 8), MULTIBOOT_TAG_TYPE_ACPI_OLD);
     if (tag->type == MULTIBOOT_TAG_TYPE_END) {
         kpanic("No old ACPI\n");
     }
-    /* tag = multiboot_find_tag((void *)(addr + 8),
-     * MULTIBOOT_TAG_TYPE_ACPI_NEW); */
-    /* if (tag->type == MULTIBOOT_TAG_TYPE_END) { */
-    /* kpanic("No new ACPI\n"); */
-    /* } */
-    struct multiboot_tag_old_acpi *old_acpi_tag = (void *)tag;
-    kassert(old_acpi_tag->size == 28);
+    const struct multiboot_tag_old_acpi *old_acpi_tag = (void *)tag;
 
-    const struct rsdp *rsdp = (void *)old_acpi_tag->rsdp;
-
-    uint8_t sum = 0;
-    for (uint64_t i = 0; i < sizeof(struct rsdp); ++i) {
-        sum += ((uint8_t *)rsdp)[i];
+    tag = multiboot_find_tag((void *)(addr + 8), MULTIBOOT_TAG_TYPE_ACPI_NEW);
+    if (tag->type == MULTIBOOT_TAG_TYPE_END) {
+        log(LOG_LEVEL_INFO, "No new ACPI tag found\n");
+    } else {
+        log(LOG_LEVEL_INFO, "New ACPI tag found\n");
     }
-    kassert(sum == 0);
-    kassert(rsdp->revision == 0);
 
-    acpi_print_rsdp(rsdp);
-
-    bool rsdt_region_found = false;
-    uint64_t rsdt_region_addr = 0;
-    uint64_t rsdt_region_len = 0;
-    for (uint64_t i = 0; sizeof(struct multiboot_tag_mmap)
-             + i * sizeof(struct multiboot_mmap_entry)
-         < mmap_tag->size;
-         i++) {
-        if (rsdp->rsdt_phys_addr >= mmap_tag->entries[i].addr
-            && rsdp->rsdt_phys_addr
-                < mmap_tag->entries[i].addr + mmap_tag->entries[i].len) {
-            log(LOG_LEVEL_DEBUG, "RSDT region type: %u\n",
-                mmap_tag->entries[i].type);
-            rsdt_region_found = true;
-            rsdt_region_addr = mmap_tag->entries[i].addr;
-            rsdt_region_len = mmap_tag->entries[i].len;
-            break;
-        }
-    }
-    kassert(rsdt_region_found);
+    acpi_prepare(old_acpi_tag, mmap_tag);
 
     backtrace();
 
     pmm_init(mmap_tag);
     vmm_init();
 
-    (void)rsdt_region_addr;
-    (void)rsdt_region_len;
-
-    uint64_t res = vmm_map_physical(0x0000001000000000UL, rsdt_region_addr,
-                                    rsdt_region_len, 0);
+    uint64_t res = acpi_map_region();
     kassert(res != VMM_ALLOC_ERROR);
+
+    const struct madt *madt = (void *)acpi_rsdt_find_table("APIC");
+    kassert(madt != NULL);
+    kprintf("len: %u, lapic_addr: %x\n", madt->header.length,
+            madt->lapic_phys_addr);
 
     uint64_t mmap_addr = vmm_alloc(0xffffb33333333000UL, VMM_ALLOC_RW);
     kassert(mmap_addr != VMM_ALLOC_ERROR);
@@ -130,7 +104,6 @@ noreturn void kmain(multiboot_uint32_t magic, uint64_t addr) {
 
     // TODO: Add documentation
     // TODO: Higher half kernel
-    // TODO: vmm
 
     // TODO: APIC
     // TODO: HPET

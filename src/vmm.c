@@ -81,7 +81,7 @@ uint64_t vmm_map_physical(uint64_t virt_addr, uint64_t phys_addr, uint64_t len,
         };
     }
 
-    return virt_addr;
+    return 0;
 
 failed_paging_structs_alloc:
     return VMM_ALLOC_ERROR;
