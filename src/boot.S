@@ -166,11 +166,12 @@ long_mode_init:
     mov $0, %eax
     mov %eax, pdt + 4
 
-    // Identity map every page table entry in the first page table.
+    // Identity map page frames of boot and kernel ranges.
+    // We are assuming that they in a single page table.
     mov $0, %ecx
     lea pt, %ebx
-    .local init_first_page_table_loop
-init_first_page_table_loop:
+    .local identity_map_boot_kernel_pages_loop
+identity_map_boot_kernel_pages_loop:
     mov %ecx, %eax
     shl $12, %eax
     or $((1 << 0) | (1 << 1)), %eax
@@ -181,8 +182,29 @@ init_first_page_table_loop:
     add $4, %ebx
     add $1, %ecx
 
-    cmp $512, %ecx // Number of page table entries
-    jl init_first_page_table_loop
+    // Number of pages for boot and kernel range
+    mov $_ekern, %eax
+    add $(4096 - 1), %eax
+    shr $12, %eax
+    cmp %eax, %ecx
+    jl identity_map_boot_kernel_pages_loop
+
+    // Identity map multiboot information structure. No loop on the size for
+    // simplicity, we are assuming that boot info is on a single page frame.
+    mov %esi, %eax
+    shr $12, %eax // Page index
+    shl $3, %eax // Page table offset (a page table entry is 8 (1 << 3) bytes)
+    lea pt, %ebx
+    add %eax, %ebx
+
+    mov %esi, %eax
+    and $0xfffff000, %eax
+    or $((1 << 0) | (1 << 1)), %eax
+    mov %eax, (%ebx)
+    add $4, %ebx
+    // Multiboot boot information should be placed in the first 32 bit address
+    // space of the physical address space
+    movl $(1 << (63 - 32)), (%ebx)
 
     // IA-32e mode initialization (see Vol 3A 10.8.5)
 
@@ -224,6 +246,8 @@ init_first_page_table_loop:
     mov %ax, %fs
     mov %ax, %gs
 
+    lea (kernel_stack + KERNEL_STACK_SIZE - 1), %esp
+    and $0xfffffff0, %esp
     push $(SEGMENT_SELECTOR(GDT_IDX_CODE, SEGMENT_SELECTOR_GDT, 0))
     push $load_gdt_segments_caller_ret
     lret

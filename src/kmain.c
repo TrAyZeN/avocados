@@ -25,7 +25,7 @@
 
 uint8_t kernel_stack[KERNEL_STACK_SIZE] __align(16);
 
-noreturn void kmain(multiboot_uint32_t magic, uint64_t addr) {
+noreturn void kmain(multiboot_uint32_t magic, uint64_t multiboot_info_addr) {
     serial_init(SERIAL_PORT_COM1, SERIAL_BAUDRATE_38400);
 
     run_tests();
@@ -33,28 +33,24 @@ noreturn void kmain(multiboot_uint32_t magic, uint64_t addr) {
     if (magic != MULTIBOOT2_BOOTLOADER_MAGIC) {
         kpanic("Invalid multiboot2 magic: %x\n", magic);
     }
+    // We created a single mapping for multiboot_info_addr assuming it is on a
+    // single page frame
+    kassert(*(uint32_t *)multiboot_info_addr <= 4096);
+    kassert(multiboot_info_addr % 4096 == 0);
 
-    const struct multiboot_tag *tag =
-        multiboot_find_tag((void *)(addr + 8), MULTIBOOT_TAG_TYPE_FRAMEBUFFER);
+    const struct multiboot_tag *tag = multiboot_find_tag(
+        (void *)(multiboot_info_addr + 8), MULTIBOOT_TAG_TYPE_FRAMEBUFFER);
     if (tag->type == MULTIBOOT_TAG_TYPE_END) {
         kpanic("No framebuffer info provided by the bootloader\n");
     }
 
-    struct multiboot_tag_framebuffer *frame_buffer_tag = (void *)tag;
-    if (frame_buffer_tag->common.framebuffer_type
-        == MULTIBOOT_FRAMEBUFFER_TYPE_EGA_TEXT) {
-        fb_init((void *)frame_buffer_tag->common.framebuffer_addr,
-                frame_buffer_tag->common.framebuffer_width,
-                frame_buffer_tag->common.framebuffer_height);
-    } else {
-        kpanic("Invalid framebuffer type: %u\n",
-               frame_buffer_tag->common.framebuffer_type);
-    }
+    fb_prepare((struct multiboot_tag_framebuffer *)tag);
 
     load_tss();
     load_idt();
 
-    tag = multiboot_find_tag((void *)(addr + 8), MULTIBOOT_TAG_TYPE_MMAP);
+    tag = multiboot_find_tag((void *)(multiboot_info_addr + 8),
+                             MULTIBOOT_TAG_TYPE_MMAP);
     if (tag->type == MULTIBOOT_TAG_TYPE_END) {
         kpanic("No memory map provided by the bootloader");
     }
@@ -62,13 +58,15 @@ noreturn void kmain(multiboot_uint32_t magic, uint64_t addr) {
     const struct multiboot_tag_mmap *mmap_tag = (void *)tag;
     multiboot_print_mmap(mmap_tag);
 
-    tag = multiboot_find_tag((void *)(addr + 8), MULTIBOOT_TAG_TYPE_ACPI_OLD);
+    tag = multiboot_find_tag((void *)(multiboot_info_addr + 8),
+                             MULTIBOOT_TAG_TYPE_ACPI_OLD);
     if (tag->type == MULTIBOOT_TAG_TYPE_END) {
         kpanic("No old ACPI\n");
     }
     const struct multiboot_tag_old_acpi *old_acpi_tag = (void *)tag;
 
-    tag = multiboot_find_tag((void *)(addr + 8), MULTIBOOT_TAG_TYPE_ACPI_NEW);
+    tag = multiboot_find_tag((void *)(multiboot_info_addr + 8),
+                             MULTIBOOT_TAG_TYPE_ACPI_NEW);
     if (tag->type == MULTIBOOT_TAG_TYPE_END) {
         log(LOG_LEVEL_INFO, "No new ACPI tag found\n");
     } else {
@@ -79,6 +77,8 @@ noreturn void kmain(multiboot_uint32_t magic, uint64_t addr) {
 
     pmm_init(mmap_tag);
     vmm_init();
+
+    kassert(fb_init() == 0);
 
     uint64_t res = acpi_map_region();
     kassert(res != VMM_ALLOC_ERROR);

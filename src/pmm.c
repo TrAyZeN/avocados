@@ -113,6 +113,7 @@ void pmm_init(const struct multiboot_tag_mmap *mmap_tag) {
         uint64_t res = 0;
         struct pde *pde = get_pde(memory_map_virt_addr);
         if (!pde->present) {
+            // TODO: Remove res
             // Store the page table after the memory map
             uint64_t phys_addr =
                 ALIGN_UP(memory_map_phys_addr + memory_map_size, PAGE_SIZE)
@@ -126,7 +127,9 @@ void pmm_init(const struct multiboot_tag_mmap *mmap_tag) {
             };
 
             // Zero initialize the table so that present bits are 0
-            memset((uint8_t *)phys_addr, 0, PAGE_SIZE);
+            memset((uint8_t *)ALIGN_DOWN(
+                       (uint64_t)get_pte(memory_map_virt_addr), PAGE_SIZE),
+                   0, PAGE_SIZE);
             res += 1;
         }
 
