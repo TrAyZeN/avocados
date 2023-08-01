@@ -77,8 +77,6 @@ noreturn void kmain(multiboot_uint32_t magic, uint64_t addr) {
 
     acpi_prepare(old_acpi_tag, mmap_tag);
 
-    backtrace();
-
     pmm_init(mmap_tag);
     vmm_init();
 
@@ -94,6 +92,8 @@ noreturn void kmain(multiboot_uint32_t magic, uint64_t addr) {
     kassert(mmap_addr != VMM_ALLOC_ERROR);
     kprintf("mmap_addr: %lx\n", mmap_addr);
     vmm_free(mmap_addr);
+
+    backtrace();
 
     MAGIC_BREAKPOINT;
 

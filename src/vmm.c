@@ -7,7 +7,48 @@
 static uint64_t vmm_alloc_paging_structs(uint64_t addr);
 
 void vmm_init(void) {
-    // TODO: set xd for kernel range
+    extern uint8_t _srodata, _erodata;
+    extern uint8_t _eh_frame_start, _eh_frame_end;
+    extern uint8_t _sdata, _edata;
+    extern uint8_t _sbss, _ebss;
+
+    for (uint64_t addr = (uint64_t)&_srodata; addr < (uint64_t)&_erodata;
+         addr += PAGE_SIZE) {
+        struct pte *pte = get_pte(addr);
+
+        pte->rw = 0;
+        pte->xd = 1;
+    }
+
+    for (uint64_t addr = (uint64_t)&_eh_frame_start;
+         addr < (uint64_t)&_eh_frame_end; addr += PAGE_SIZE) {
+        struct pte *pte = get_pte(addr);
+
+        pte->rw = 0;
+        pte->xd = 1;
+    }
+
+    for (uint64_t addr = (uint64_t)&_eh_frame_start;
+         addr < (uint64_t)&_eh_frame_end; addr += PAGE_SIZE) {
+        struct pte *pte = get_pte(addr);
+
+        pte->rw = 0;
+        pte->xd = 1;
+    }
+
+    for (uint64_t addr = (uint64_t)&_sdata; addr < (uint64_t)&_edata;
+         addr += PAGE_SIZE) {
+        struct pte *pte = get_pte(addr);
+
+        pte->xd = 1;
+    }
+
+    for (uint64_t addr = (uint64_t)&_sbss; addr < (uint64_t)&_ebss;
+         addr += PAGE_SIZE) {
+        struct pte *pte = get_pte(addr);
+
+        pte->xd = 1;
+    }
 
     log(LOG_LEVEL_INFO, "VMM: VMM initialized\n");
 }
