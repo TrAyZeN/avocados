@@ -24,6 +24,7 @@ SECTIONS {
     }
     _eboot = .;
 
+    . = ALIGN(4096);
     _skern = .;
 
     .text : ALIGN(4096) {
