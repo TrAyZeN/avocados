@@ -126,52 +126,54 @@ _start:
 long_mode_init:
     // Page table initialization (see Vol. 3A 4.5.4)
 
+    // Setup only first pml4 entry for boot. Thus kernel code should fit within
+    // the first 512GiB.
     lea pdpt, %eax
     and $0xfffff000, %eax
-    or $0b000000011, %eax
+    or $((1 << 0) | (1 << 1)), %eax
     mov %eax, pml4
-    // pdpt should be placed in the first 32 bit address space of the physical
-    // address space
+    // pdpt should be placed in the first 32 bit of the physical address space
     mov $0, %eax
     mov %eax, pml4 + 4
 
     // Setup recursive paging
     lea pml4, %eax
     and $0xfffff000, %eax
-    or $0b000000011, %eax
+    or $((1 << 0) | (1 << 1)), %eax
     mov %eax, pml4 + (511 * 8)
     mov $0, %eax
     mov %eax, pml4 + (511 * 8 + 4)
 
-    // Kernel code should fit within the first 1GiB, so no need to init more
-    // than one pdte
+    // Setup only first pdpt entry for boot. Thus kernel code should fit within
+    // the first 1GiB.
     lea pdt, %eax
     and $0xfffff000, %eax
-    or $0b00000011, %eax
+    or $((1 << 0) | (1 << 1)), %eax
     mov %eax, pdpt
     // pdt should be placed in the first 32 bit address space of the physical
     // address space
     mov $0, %eax
     mov %eax, pdpt + 4
 
-    // Kernel code should fit within the first 2MB, so no need to init more than
-    // one pdte
+    // Setup only first pd entry. Thus kernel code should fit within the first
+    // 2MiB.
     lea pt, %eax
     and $0xfffff000, %eax
-    or $0b00000011, %eax
+    or $((1 << 0) | (1 << 1)), %eax
     mov %eax, pdt
     // pt should be placed in the first 32 bit address space of the physical
     // address space
     mov $0, %eax
     mov %eax, pdt + 4
 
+    // Identity map every page table entry in the first page table.
     mov $0, %ecx
     lea pt, %ebx
     .local init_first_page_table_loop
 init_first_page_table_loop:
     mov %ecx, %eax
     shl $12, %eax
-    or $0b000000011, %eax
+    or $((1 << 0) | (1 << 1)), %eax
     mov %eax, (%ebx)
     add $4, %ebx
 
