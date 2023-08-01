@@ -122,7 +122,7 @@ void pmm_init(const struct multiboot_tag_mmap *mmap_tag) {
                 .rw = 1,
                 .us = 0,
                 .addr = BIT_RANGE(phys_addr, 12, 51),
-                .xd = 1,
+                .xd = 0,
             };
 
             // Zero initialize the table so that present bits are 0

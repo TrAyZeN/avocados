@@ -107,7 +107,7 @@ static uint64_t vmm_alloc_paging_structs(uint64_t addr) {
             .rw = 1,
             .us = 0,
             .addr = BIT_RANGE(pdpt_phys_addr, 12, 51),
-            .xd = 1,
+            .xd = 0,
         };
 
         // Zero initialize the table so that present bits are 0
@@ -129,7 +129,7 @@ static uint64_t vmm_alloc_paging_structs(uint64_t addr) {
             .rw = 1,
             .us = 0,
             .addr = BIT_RANGE(pdt_phys_addr, 12, 51),
-            .xd = 1,
+            .xd = 0,
         };
 
         // Zero initialize the table so that present bits are 0
@@ -151,7 +151,7 @@ static uint64_t vmm_alloc_paging_structs(uint64_t addr) {
             .rw = 1,
             .us = 0,
             .addr = BIT_RANGE(pt_phys_addr, 12, 51),
-            .xd = 1,
+            .xd = 0,
         };
 
         // Zero initialize the table so that present bits are 0
