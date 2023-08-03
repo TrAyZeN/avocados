@@ -8,23 +8,23 @@
  */
 
 // Divisor Latch Low Byte (WARN: Only active when DLAB = 1)
-#define SERIAL_REG_DLL(base) (base)
+#define SERIAL_REG_DLL(BASE) (BASE)
 // Divisor Latch High Byte (WARN: Only active when DLAB = 1)
-#define SERIAL_REG_DLH(base) ((base) + 1)
+#define SERIAL_REG_DLH(BASE) ((BASE) + 1)
 // Interrupt Enable Register
-#define SERIAL_REG_IER(base) ((base) + 1)
+#define SERIAL_REG_IER(BASE) ((BASE) + 1)
 // Interrupt Identification Register
-#define SERIAL_REG_IIR(base) ((base) + 2)
+#define SERIAL_REG_IIR(BASE) ((BASE) + 2)
 // FIFO Control Register
-#define SERIAL_REG_FCR(base) ((base) + 2)
+#define SERIAL_REG_FCR(BASE) ((BASE) + 2)
 // Line Control Register
-#define SERIAL_REG_LCR(base) ((base) + 3)
+#define SERIAL_REG_LCR(BASE) ((BASE) + 3)
 // Modem Control Register
-#define SERIAL_REG_MCR(base) ((base) + 4)
+#define SERIAL_REG_MCR(BASE) ((BASE) + 4)
 // Line Status Register
-#define SERIAL_REG_LSR(base) ((base) + 5)
+#define SERIAL_REG_LSR(BASE) ((BASE) + 5)
 // Modem Status Register
-#define SERIAL_REG_MSR(base) ((base) + 6)
+#define SERIAL_REG_MSR(BASE) ((BASE) + 6)
 
 static void serial_set_baudrate(enum serial_port port,
                                 enum serial_baudrate baudrate);

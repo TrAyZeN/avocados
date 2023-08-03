@@ -3,16 +3,16 @@
 
 #include "panic.h"
 
-#define likely(x) __builtin_expect(!!(x), 1)
-#define unlikely(x) __builtin_expect(!!(x), 0)
+#define likely(X) __builtin_expect(!!(X), 1)
+#define unlikely(X) __builtin_expect(!!(X), 0)
 
 // TODO: Opt out
 // kassert may be opted-out so don't use it if you need to crash the kernel.
-#define kassert(expr)                                                          \
+#define kassert(EXPR)                                                          \
     {                                                                          \
-        if (unlikely(!(expr))) {                                               \
+        if (unlikely(!(EXPR))) {                                               \
             kpanic("%s:%u: Assertion '%s' failed\n", __BASE_FILE__, __LINE__,  \
-                   #expr);                                                     \
+                   #EXPR);                                                     \
         }                                                                      \
     }
 
