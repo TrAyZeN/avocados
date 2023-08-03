@@ -2,7 +2,7 @@ CC ?= gcc
 # AS ?= gcc
 
 CPPFLAGS += -MMD -Isrc
-CFLAGS += -std=c11 -Wall -Wextra -Werror -Wshadow -Wdouble-promotion -Wundef \
+CFLAGS += -std=gnu17 -Wall -Wextra -Werror -Wshadow -Wdouble-promotion -Wundef \
 	 -Wconversion -Wsign-conversion -Wformat=2 -O0 -fno-builtin -ffreestanding \
 	 -funsigned-char -fno-pie -fno-common -m64 -march=x86-64 \
 	 -ffunction-sections -fdata-sections -fno-stack-protector -mno-red-zone \
