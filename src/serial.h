@@ -1,5 +1,5 @@
-#ifndef SERIAL_H_
-#define SERIAL_H_
+#ifndef AVOCADOS_SERIAL_H_
+#define AVOCADOS_SERIAL_H_
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -37,4 +37,4 @@ void serial_write_byte(enum serial_port port, uint8_t byte);
 void serial_write(enum serial_port port, const char *buf, size_t count);
 void serial_puts(enum serial_port port, const char *str);
 
-#endif /* SERIAL_H_ */
+#endif /* ! AVOCADOS_SERIAL_H_ */

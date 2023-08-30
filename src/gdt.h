@@ -156,6 +156,6 @@ struct tss {
 
 void load_tss(void);
 
-#endif /* !__ASSEMBLER__ */
+#endif /* ! __ASSEMBLER__ */
 
-#endif /* !AVOCADOS_GDT_H_ */
+#endif /* ! AVOCADOS_GDT_H_ */
