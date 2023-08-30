@@ -20,5 +20,6 @@ void isr_17(void);
 void isr_18(void);
 void isr_19(void);
 void isr_21(void);
+void isr_32(void);
 
 #endif /* ! AVOCADOS_ISR_H_ */

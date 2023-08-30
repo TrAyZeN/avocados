@@ -2,6 +2,7 @@
 #include <stdnoreturn.h>
 
 #include "acpi.h"
+#include "apic.h"
 #include "attributes.h"
 #include "avocados.h"
 #include "backtrace.h"
@@ -85,8 +86,11 @@ noreturn void kmain(multiboot_uint32_t magic, uint64_t multiboot_info_addr) {
 
     const struct madt *madt = (void *)acpi_rsdt_find_table("APIC");
     kassert(madt != NULL);
-    kprintf("len: %u, lapic_addr: %x\n", madt->header.length,
-            madt->lapic_phys_addr);
+    acpi_print_madt(madt);
+
+    uint32_t ioapic_phys_addr = acpi_madt_find_ioapic_addr(madt);
+    kassert(ioapic_phys_addr != 0xffffffff);
+    apic_init(madt->lapic_phys_addr, ioapic_phys_addr, (madt->flags & 1) == 1);
 
     uint64_t mmap_addr = vmm_alloc(0xffffb33333333000UL, VMM_ALLOC_RW);
     kassert(mmap_addr != VMM_ALLOC_ERROR);

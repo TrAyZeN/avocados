@@ -31,11 +31,15 @@ int strncmp(const char *s1, const char *s2, uint64_t n);
 // ALIGN must be a power of two
 /* #define ALIGN_UP(VALUE, ALIGN) ((VALUE) & ~((ALIGN)-1)) */
 // align VALUE to the next multiple of ALIGN
+// TODO: Inline function
 #define ALIGN_UP(VALUE, ALIGN) ((((VALUE) + (ALIGN)-1U) / (ALIGN)) * (ALIGN))
 #define ALIGN_DOWN(VALUE, ALIGN) (((VALUE) / (ALIGN)) * (ALIGN))
 _Static_assert(ALIGN_UP(4096, 4096) == 4096, "ALIGN_UP test");
 _Static_assert(ALIGN_DOWN(4096, 4096) == 4096, "ALIGN_DOWN test");
 
+// TODO: Assert that START <= END
+// WARN: The problem of converting this to a function is the type range
+// We need a generic macro
 // Returns bits of val in the range start to end included (indexed from lsb).
 #define BIT_RANGE(VAL, START, END)                                             \
     (((VAL) >> (START)) & ((1UL << ((END) - (START) + 1U)) - 1UL))

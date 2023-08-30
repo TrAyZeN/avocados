@@ -1,9 +1,12 @@
 #include <stdint.h>
 
+#include "apic.h"
 #include "attributes.h"
 #include "log.h"
 
-#define DEF_ISR(VECTOR, HANDLER)                                               \
+#define DEF_ISR(VECTOR, HANDLER) _DEF_ISR(VECTOR, HANDLER)
+
+#define _DEF_ISR(VECTOR, HANDLER)                                              \
     __naked void isr_##VECTOR(void) {                                          \
         __asm__ volatile("push %rax\n"                                         \
                          "push %rbx\n"                                         \
@@ -164,4 +167,10 @@ __used static void simd_fpe(__unused struct context ctx) {
 DEF_ISR(21, control_protection);
 __used static void control_protection(__unused struct context ctx) {
     log(LOG_LEVEL_DEBUG, "Interruption: Control protection exception\n");
+}
+
+DEF_ISR(VECTOR_NUMBER_IOAPIC, io_external_interrupt);
+__used static void io_external_interrupt(__unused struct context ctx) {
+    log(LOG_LEVEL_DEBUG, "Interruption: External interrupt (int 32)\n");
+    apic_eoi();
 }

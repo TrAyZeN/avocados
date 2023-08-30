@@ -20,6 +20,7 @@
 
 // MSR values
 // See Vol. 4
+#define MSR_IA32_APIC_BASE 0x1b
 #define MSR_IA32_EFER 0xc0000080
 
 #endif /* ! AVOCADOS_REGISTERS_H_ */

@@ -43,4 +43,12 @@ static inline uint16_t inw(uint16_t port) {
     return res;
 }
 
+static inline uint64_t rdmsr(uint32_t msr) {
+    uint32_t res_lo, res_hi;
+
+    __asm__ volatile("rdmsr" : "=&d"(res_hi), "=&a"(res_lo) : "c"(msr));
+
+    return ((uint64_t)res_hi << 32) | res_lo;
+}
+
 #endif /* ! AVOCADOS_INSTR_H_ */

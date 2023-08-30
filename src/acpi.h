@@ -69,10 +69,27 @@ struct madt_int_controller_lapic {
 struct madt_int_controller_ioapic {
     uint8_t type;
     uint8_t length;
-    uint8_t io_apic_id;
-    uint8_t reserved;
-    uint32_t io_apic_phys_addr;
+    uint8_t ioapic_id;
+    uint8_t __reserved;
+    uint32_t ioapic_phys_addr;
     uint32_t system_vector_base;
+} __packed;
+
+struct madt_int_controller_int_src_override {
+    uint8_t type;
+    uint8_t length;
+    uint8_t bus;
+    uint8_t source;
+    uint32_t global_system_interrupt;
+    uint16_t flags;
+} __packed;
+
+struct madt_int_controller_lapic_nmi {
+    uint8_t type;
+    uint8_t length;
+    uint8_t acpi_processor_id;
+    uint16_t flags;
+    uint8_t lapic_lint_num;
 } __packed;
 
 void acpi_prepare(const struct multiboot_tag_old_acpi *old_acpi_tag,
@@ -80,10 +97,12 @@ void acpi_prepare(const struct multiboot_tag_old_acpi *old_acpi_tag,
 uint64_t acpi_map_region(void);
 
 const struct description_header *acpi_rsdt_find_table(char signature[4]);
+uint32_t acpi_madt_find_ioapic_addr(const struct madt *madt);
 
 bool acpi_rsdp_is_valid_checksum(const struct rsdp *rsdp);
 bool acpi_table_is_valid_checksum(const struct description_header *header);
 
 void acpi_print_rsdp(const struct rsdp *rsdp);
+void acpi_print_madt(const struct madt *madt);
 
 #endif /* ! AVOCADOS_ACPI_H_ */

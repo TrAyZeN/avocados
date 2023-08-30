@@ -66,6 +66,7 @@ void load_idt(void) {
     idt[18] = GATE_DESCRIPTOR((uint64_t)isr_18, GATE_TYPE_INT);
     idt[19] = GATE_DESCRIPTOR((uint64_t)isr_19, GATE_TYPE_INT);
     idt[21] = GATE_DESCRIPTOR((uint64_t)isr_21, GATE_TYPE_INT);
+    idt[32] = GATE_DESCRIPTOR((uint64_t)isr_32, GATE_TYPE_INT);
 
     struct pseudo_descriptor64 idt_descriptor = {
         .size = sizeof(idt) - 1,
