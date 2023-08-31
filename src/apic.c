@@ -100,14 +100,14 @@ void apic_init(uint64_t lapic_phys_addr, uint64_t ioapic_phys_addr,
 
     uint32_t ioapic_num_entries =
         (ioapic_read_register(IOAPICVER) >> 16) & 0xff;
-    kprintf("ioapic_num_entries: %u\n", ioapic_num_entries);
+    log(LOG_LEVEL_DEBUG, "APIC: number of IO APIC entries: %u\n",
+        ioapic_num_entries);
 
-    // Enable all ioapic interrupts
+    // Mask all interrupts
     for (uint8_t i = 0; i < ioapic_num_entries; ++i) {
-        // Should we enable ioapic interrupts with different vector nubmer ?
         ioapic_set_io_redirection_table(
-            i, VECTOR_NUMBER_IOAPIC, DELIVERY_MODE_FIXED, 0,
-            POLARITY_ACTIVE_HIGH, TRIGGER_MODE_EDGE, 0, 0);
+            i, VECTOR_NUMBER_IOAPIC + i, DELIVERY_MODE_FIXED, 0,
+            POLARITY_ACTIVE_HIGH, TRIGGER_MODE_EDGE, 0, 1);
     }
 
     // From ACPI:
@@ -141,6 +141,12 @@ static void disable_dual_8259a_pic(void) {
 static inline uint32_t ioapic_read_register(uint32_t offset) {
     *REG_IOREGSEL = offset;
     return *REG_IOWIN;
+}
+
+void ioapic_unmask_interrupt(uint8_t interrupt) {
+    ioapic_set_io_redirection_table(
+        interrupt, VECTOR_NUMBER_IOAPIC + interrupt, DELIVERY_MODE_FIXED, 0,
+        POLARITY_ACTIVE_HIGH, TRIGGER_MODE_EDGE, 0, 0);
 }
 
 static void ioapic_set_io_redirection_table(uint8_t num, uint8_t vector,

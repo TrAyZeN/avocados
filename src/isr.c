@@ -169,8 +169,194 @@ __used static void control_protection(__unused struct context ctx) {
     log(LOG_LEVEL_DEBUG, "Interruption: Control protection exception\n");
 }
 
-DEF_ISR(VECTOR_NUMBER_IOAPIC, io_external_interrupt);
-__used static void io_external_interrupt(__unused struct context ctx) {
+DEF_ISR(32, io_external_interrupt_0);
+__used static void io_external_interrupt_0(__unused struct context ctx) {
     log(LOG_LEVEL_DEBUG, "Interruption: External interrupt (int 32)\n");
+    apic_eoi();
+}
+
+DEF_ISR(33, io_external_interrupt_1);
+__used static void io_external_interrupt_1(__unused struct context ctx) {
+    log(LOG_LEVEL_DEBUG, "Interruption: External interrupt (int 33)\n");
+    apic_eoi();
+}
+
+DEF_ISR(34, io_external_interrupt_2);
+__used static void io_external_interrupt_2(__unused struct context ctx) {
+    log(LOG_LEVEL_DEBUG, "Interruption: External interrupt (int 34)\n");
+    apic_eoi();
+}
+
+DEF_ISR(35, io_external_interrupt_3);
+__used static void io_external_interrupt_3(__unused struct context ctx) {
+    log(LOG_LEVEL_DEBUG, "Interruption: External interrupt (int 35)\n");
+    apic_eoi();
+}
+
+DEF_ISR(36, io_external_interrupt_4);
+__used static void io_external_interrupt_4(__unused struct context ctx) {
+    log(LOG_LEVEL_DEBUG, "Interruption: External interrupt (int 36)\n");
+    apic_eoi();
+}
+
+DEF_ISR(37, io_external_interrupt_5);
+__used static void io_external_interrupt_5(__unused struct context ctx) {
+    log(LOG_LEVEL_DEBUG, "Interruption: External interrupt (int 37)\n");
+    apic_eoi();
+}
+
+DEF_ISR(38, io_external_interrupt_6);
+__used static void io_external_interrupt_6(__unused struct context ctx) {
+    log(LOG_LEVEL_DEBUG, "Interruption: External interrupt (int 38)\n");
+    apic_eoi();
+}
+
+DEF_ISR(39, io_external_interrupt_7);
+__used static void io_external_interrupt_7(__unused struct context ctx) {
+    log(LOG_LEVEL_DEBUG, "Interruption: External interrupt (int 39)\n");
+    apic_eoi();
+}
+
+DEF_ISR(40, io_external_interrupt_8);
+__used static void io_external_interrupt_8(__unused struct context ctx) {
+    log(LOG_LEVEL_DEBUG, "Interruption: External interrupt (int 40)\n");
+    apic_eoi();
+}
+
+DEF_ISR(41, io_external_interrupt_9);
+__used static void io_external_interrupt_9(__unused struct context ctx) {
+    log(LOG_LEVEL_DEBUG, "Interruption: External interrupt (int 41)\n");
+    apic_eoi();
+}
+
+DEF_ISR(42, io_external_interrupt_10);
+__used static void io_external_interrupt_10(__unused struct context ctx) {
+    log(LOG_LEVEL_DEBUG, "Interruption: External interrupt (int 42)\n");
+    apic_eoi();
+}
+
+DEF_ISR(43, io_external_interrupt_11);
+__used static void io_external_interrupt_11(__unused struct context ctx) {
+    log(LOG_LEVEL_DEBUG, "Interruption: External interrupt (int 43)\n");
+    apic_eoi();
+}
+
+DEF_ISR(44, io_external_interrupt_12);
+__used static void io_external_interrupt_12(__unused struct context ctx) {
+    log(LOG_LEVEL_DEBUG, "Interruption: External interrupt (int 44)\n");
+    apic_eoi();
+}
+
+DEF_ISR(45, io_external_interrupt_13);
+__used static void io_external_interrupt_13(__unused struct context ctx) {
+    log(LOG_LEVEL_DEBUG, "Interruption: External interrupt (int 45)\n");
+    apic_eoi();
+}
+
+DEF_ISR(46, io_external_interrupt_14);
+__used static void io_external_interrupt_14(__unused struct context ctx) {
+    log(LOG_LEVEL_DEBUG, "Interruption: External interrupt (int 46)\n");
+    apic_eoi();
+}
+
+DEF_ISR(47, io_external_interrupt_15);
+__used static void io_external_interrupt_15(__unused struct context ctx) {
+    log(LOG_LEVEL_DEBUG, "Interruption: External interrupt (int 47)\n");
+    apic_eoi();
+}
+
+DEF_ISR(48, io_external_interrupt_16);
+__used static void io_external_interrupt_16(__unused struct context ctx) {
+    log(LOG_LEVEL_DEBUG, "Interruption: External interrupt (int 48)\n");
+    apic_eoi();
+}
+
+DEF_ISR(49, io_external_interrupt_17);
+__used static void io_external_interrupt_17(__unused struct context ctx) {
+    log(LOG_LEVEL_DEBUG, "Interruption: External interrupt (int 49)\n");
+    apic_eoi();
+}
+
+DEF_ISR(50, io_external_interrupt_18);
+__used static void io_external_interrupt_18(__unused struct context ctx) {
+    log(LOG_LEVEL_DEBUG, "Interruption: External interrupt (int 50)\n");
+    apic_eoi();
+}
+
+DEF_ISR(51, io_external_interrupt_19);
+__used static void io_external_interrupt_19(__unused struct context ctx) {
+    log(LOG_LEVEL_DEBUG, "Interruption: External interrupt (int 51)\n");
+    apic_eoi();
+}
+
+DEF_ISR(52, io_external_interrupt_20);
+__used static void io_external_interrupt_20(__unused struct context ctx) {
+    log(LOG_LEVEL_DEBUG, "Interruption: External interrupt (int 52)\n");
+    apic_eoi();
+}
+
+DEF_ISR(53, io_external_interrupt_21);
+__used static void io_external_interrupt_21(__unused struct context ctx) {
+    log(LOG_LEVEL_DEBUG, "Interruption: External interrupt (int 53)\n");
+    apic_eoi();
+}
+
+DEF_ISR(54, io_external_interrupt_22);
+__used static void io_external_interrupt_22(__unused struct context ctx) {
+    log(LOG_LEVEL_DEBUG, "Interruption: External interrupt (int 54)\n");
+    apic_eoi();
+}
+
+DEF_ISR(55, io_external_interrupt_23);
+__used static void io_external_interrupt_23(__unused struct context ctx) {
+    log(LOG_LEVEL_DEBUG, "Interruption: External interrupt (int 55)\n");
+    apic_eoi();
+}
+
+DEF_ISR(56, io_external_interrupt_24);
+__used static void io_external_interrupt_24(__unused struct context ctx) {
+    log(LOG_LEVEL_DEBUG, "Interruption: External interrupt (int 56)\n");
+    apic_eoi();
+}
+
+DEF_ISR(57, io_external_interrupt_25);
+__used static void io_external_interrupt_25(__unused struct context ctx) {
+    log(LOG_LEVEL_DEBUG, "Interruption: External interrupt (int 57)\n");
+    apic_eoi();
+}
+
+DEF_ISR(58, io_external_interrupt_26);
+__used static void io_external_interrupt_26(__unused struct context ctx) {
+    log(LOG_LEVEL_DEBUG, "Interruption: External interrupt (int 58)\n");
+    apic_eoi();
+}
+
+DEF_ISR(59, io_external_interrupt_27);
+__used static void io_external_interrupt_27(__unused struct context ctx) {
+    log(LOG_LEVEL_DEBUG, "Interruption: External interrupt (int 59)\n");
+    apic_eoi();
+}
+
+DEF_ISR(60, io_external_interrupt_28);
+__used static void io_external_interrupt_28(__unused struct context ctx) {
+    log(LOG_LEVEL_DEBUG, "Interruption: External interrupt (int 60)\n");
+    apic_eoi();
+}
+
+DEF_ISR(61, io_external_interrupt_29);
+__used static void io_external_interrupt_29(__unused struct context ctx) {
+    log(LOG_LEVEL_DEBUG, "Interruption: External interrupt (int 61)\n");
+    apic_eoi();
+}
+
+DEF_ISR(62, io_external_interrupt_30);
+__used static void io_external_interrupt_30(__unused struct context ctx) {
+    log(LOG_LEVEL_DEBUG, "Interruption: External interrupt (int 62)\n");
+    apic_eoi();
+}
+
+DEF_ISR(63, io_external_interrupt_31);
+__used static void io_external_interrupt_31(__unused struct context ctx) {
+    log(LOG_LEVEL_DEBUG, "Interruption: External interrupt (int 63)\n");
     apic_eoi();
 }
