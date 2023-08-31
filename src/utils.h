@@ -44,6 +44,10 @@ _Static_assert(ALIGN_DOWN(4096, 4096) == 4096, "ALIGN_DOWN test");
 #define BIT_RANGE(VAL, START, END)                                             \
     (((VAL) >> (START)) & ((1UL << ((END) - (START) + 1U)) - 1UL))
 
+// TODO: Assert that START <= END
+#define BIT_BLOCK(VAL, START, END)                                             \
+    (((VAL) & ((1UL << ((END) - (START) + 1U)) - 1UL)) << (START))
+
 #endif /* ! __ASSEMBLER__ */
 
 #endif /* ! AVOCADOS_UTILS_H_ */

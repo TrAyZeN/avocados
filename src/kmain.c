@@ -8,6 +8,7 @@
 #include "backtrace.h"
 #include "framebuffer.h"
 #include "gdt.h"
+#include "hpet.h"
 #include "idt.h"
 #include "instr.h"
 #include "kassert.h"
@@ -92,6 +93,13 @@ noreturn void kmain(multiboot_uint32_t magic, uint64_t multiboot_info_addr) {
     kassert(ioapic_phys_addr != 0xffffffff);
     apic_init(madt->lapic_phys_addr, ioapic_phys_addr, (madt->flags & 1) == 1);
 
+    const struct hpet_description_table *hpet =
+        (void *)acpi_rsdt_find_table("HPET");
+    kassert(hpet != NULL);
+    acpi_print_hpet_description_table(hpet);
+
+    hpet_init(hpet->base_address.addr);
+
     uint64_t mmap_addr = vmm_alloc(0xffffb33333333000UL, VMM_ALLOC_RW);
     kassert(mmap_addr != VMM_ALLOC_ERROR);
     kprintf("mmap_addr: %lx\n", mmap_addr);
@@ -108,9 +116,6 @@ noreturn void kmain(multiboot_uint32_t magic, uint64_t multiboot_info_addr) {
 
     // TODO: Add documentation
     // TODO: Higher half kernel
-
-    // TODO: APIC
-    // TODO: HPET
 
     // TODO: GDB stub
     // TODO: Unwind

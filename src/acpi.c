@@ -196,3 +196,14 @@ void acpi_print_madt(const struct madt *madt) {
             (void *)((uint64_t)int_controller + int_controller_len);
     }
 }
+
+void acpi_print_hpet_description_table(
+    const struct hpet_description_table *hpet) {
+    puts("HPET:\n");
+
+    kprintf("  Event timer block id: %x\n", hpet->event_timer_block_id);
+    kprintf("  Base address: %lx\n", hpet->base_address.addr);
+    kprintf("  HPET number: %u\n", hpet->hpet_num);
+    kprintf("  Main counter minimum clock ticks: %u\n", hpet->min_ticks);
+    kprintf("  Attributes: %x\n", hpet->attrs);
+}

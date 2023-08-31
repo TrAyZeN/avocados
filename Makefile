@@ -49,7 +49,8 @@ C_SRCS := \
 	 src/log.c \
 	 src/acpi.c \
 	 src/utils.c \
-	 src/apic.c
+	 src/apic.c \
+	 src/hpet.c
 S_SRCS := src/boot.S
 OBJS := $(C_SRCS:%.c=$(OBJS_DIR)/%.o) $(S_SRCS:%.S=$(OBJS_DIR)/%.o)
 DEPS := $(OBJS:%.o=%.d)

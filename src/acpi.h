@@ -92,6 +92,23 @@ struct madt_int_controller_lapic_nmi {
     uint8_t lapic_lint_num;
 } __packed;
 
+struct generic_address_structure {
+    uint8_t address_space_id;
+    uint8_t reg_bit_width;
+    uint8_t reg_bit_offset;
+    uint8_t access_size;
+    uint64_t addr;
+} __packed;
+
+struct hpet_description_table {
+    struct description_header header;
+    uint32_t event_timer_block_id;
+    struct generic_address_structure base_address;
+    uint8_t hpet_num;
+    uint16_t min_ticks;
+    uint8_t attrs;
+} __packed;
+
 void acpi_prepare(const struct multiboot_tag_old_acpi *old_acpi_tag,
                   const struct multiboot_tag_mmap *mmap_tag);
 uint64_t acpi_map_region(void);
@@ -104,5 +121,7 @@ bool acpi_table_is_valid_checksum(const struct description_header *header);
 
 void acpi_print_rsdp(const struct rsdp *rsdp);
 void acpi_print_madt(const struct madt *madt);
+void acpi_print_hpet_description_table(
+    const struct hpet_description_table *hdt);
 
 #endif /* ! AVOCADOS_ACPI_H_ */
