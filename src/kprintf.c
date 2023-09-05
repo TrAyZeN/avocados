@@ -4,6 +4,14 @@
 #include "kprintf.h"
 #include "serial.h"
 
+enum length_modifier {
+    LM_NONE,
+    LM_HH,
+    LM_H,
+    LM_L,
+    LM_LL,
+};
+
 static void num_to_str(uint64_t num, char *str, uint8_t base, bool upper,
                        bool num_signed);
 
@@ -34,70 +42,76 @@ void kvprintf(const char *fmt, va_list ap) {
     // log(2**64 - 1, 8) = 22 + null terminator
     char int_buf[23];
     unsigned long long arg;
-    int length_modifier = 0;
+    enum length_modifier length_modifier;
+    uint8_t base;
 
     for (uint64_t i = 0; fmt[i] != '\0'; i++) {
         if (fmt[i] == '%') {
             i += 1;
 
             switch (fmt[i]) {
-            case 'l':
-                if (fmt[i + 1] == 'l') {
-                    length_modifier = 1;
+            case 'h':
+                if (fmt[i + 1] == 'h') {
+                    length_modifier = LM_HH;
                     i += 2;
                 } else {
-                    length_modifier = 2;
+                    length_modifier = LM_H;
+                    i += 1;
+                }
+                break;
+            case 'l':
+                if (fmt[i + 1] == 'l') {
+                    length_modifier = LM_LL;
+                    i += 2;
+                } else {
+                    length_modifier = LM_L;
                     i += 1;
                 }
                 break;
             default:
+                length_modifier = LM_NONE;
                 break;
             }
 
             switch (fmt[i]) {
             case 'd':
             case 'i':
-                if (length_modifier == 1) {
-                    arg = (unsigned long long)va_arg(ap, long);
-                } else if (length_modifier == 2) {
-                    arg = (unsigned long long)va_arg(ap, long long);
-                } else {
-                    arg = (unsigned long long)va_arg(ap, int);
-                }
-                num_to_str(arg, int_buf, 10, false, true);
-                puts(int_buf);
-                break;
-            case 'o':
-                if (length_modifier == 1) {
-                    arg = va_arg(ap, unsigned long);
-                } else if (length_modifier == 2) {
-                    arg = va_arg(ap, unsigned long long);
-                } else {
-                    arg = va_arg(ap, unsigned);
-                }
-                num_to_str(arg, int_buf, 8, false, false);
-                puts(int_buf);
-                break;
             case 'u':
-                if (length_modifier == 1) {
-                    arg = va_arg(ap, unsigned long);
-                } else if (length_modifier == 2) {
-                    arg = va_arg(ap, unsigned long long);
-                } else {
-                    arg = va_arg(ap, unsigned);
-                }
-                num_to_str(arg, int_buf, 10, false, false);
-                puts(int_buf);
-                break;
+            case 'o':
             case 'x':
-                if (length_modifier == 1) {
-                    arg = va_arg(ap, unsigned long);
-                } else if (length_modifier == 2) {
-                    arg = va_arg(ap, unsigned long long);
-                } else {
-                    arg = va_arg(ap, unsigned);
+            case 'X':
+                switch (fmt[i]) {
+                case 'd':
+                case 'i':
+                case 'u':
+                    base = 10;
+                    break;
+                case 'o':
+                    base = 8;
+                    break;
+                case 'x':
+                case 'X':
+                    base = 16;
+                    break;
                 }
-                num_to_str(arg, int_buf, 16, fmt[i] == 'X', false);
+
+                switch (length_modifier) {
+                case LM_NONE:
+                // Value promotable to int are promoted to int
+                case LM_HH:
+                case LM_H:
+                    arg = (unsigned long long)va_arg(ap, int);
+                    break;
+                case LM_L:
+                    arg = (unsigned long long)va_arg(ap, long);
+                    break;
+                case LM_LL:
+                    arg = (unsigned long long)va_arg(ap, long long);
+                    break;
+                }
+
+                num_to_str(arg, int_buf, base, fmt[i] == 'X',
+                           fmt[i] == 'd' || fmt[i] == 'i');
                 puts(int_buf);
                 break;
             case 'c':
