@@ -33,7 +33,7 @@ noreturn void kmain(multiboot_uint32_t magic, uint64_t multiboot_info_addr) {
     run_tests();
 
     if (magic != MULTIBOOT2_BOOTLOADER_MAGIC) {
-        kpanic("Invalid multiboot2 magic: %x\n", magic);
+        kpanic("Invalid multiboot2 magic: 0x%08x\n", magic);
     }
     // We created a single mapping for multiboot_info_addr assuming it is on a
     // single page frame

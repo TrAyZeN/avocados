@@ -118,11 +118,11 @@ void acpi_print_rsdp(const struct rsdp *rsdp) {
             rsdp->signature[1], rsdp->signature[2], rsdp->signature[3],
             rsdp->signature[4], rsdp->signature[5], rsdp->signature[6],
             rsdp->signature[7]);
-    kprintf("  Checksum: 0x%x\n", rsdp->checksum);
+    kprintf("  Checksum: 0x%02hhx\n", rsdp->checksum);
     kprintf("  OEM ID: %c%c%c%c%c%c\n", rsdp->oem_id[0], rsdp->oem_id[1],
             rsdp->oem_id[2], rsdp->oem_id[3], rsdp->oem_id[4], rsdp->oem_id[5]);
     kprintf("  Revision: %u\n", rsdp->revision);
-    kprintf("  RSDT physical address: 0x%x\n", rsdp->rsdt_phys_addr);
+    kprintf("  RSDT physical address: 0x%08x\n", rsdp->rsdt_phys_addr);
 }
 
 static void
@@ -131,8 +131,8 @@ acpi_print_description_header(const struct description_header *header) {
             header->signature[1], header->signature[2], header->signature[3]);
     kprintf("  Length: %u\n", header->length);
     kprintf("  Revision: %u\n", header->revision);
-    kprintf("  Checksum: 0x%x\n", header->checksum);
-    kprintf("  OEMID: %c%c%c%c%c%c\n", header->oem_id[0], header->oem_id[1],
+    kprintf("  Checksum: 0x%02hhx\n", header->checksum);
+    kprintf("  OEM ID: %c%c%c%c%c%c\n", header->oem_id[0], header->oem_id[1],
             header->oem_id[2], header->oem_id[3], header->oem_id[4],
             header->oem_id[5]);
     kprintf("  OEM Table ID: %c%c%c%c%c%c%c%c\n", header->oem_table_id[0],
@@ -140,21 +140,21 @@ acpi_print_description_header(const struct description_header *header) {
             header->oem_table_id[3], header->oem_table_id[4],
             header->oem_table_id[5], header->oem_table_id[6],
             header->oem_table_id[7]);
-    kprintf("  OEM Revision: %u\n", header->oem_revision);
+    kprintf("  OEM Revision: 0x%08x\n", header->oem_revision);
     kprintf("  Creator ID: %u\n", header->creator_id);
-    kprintf("  Creator Revision: %u\n", header->creator_revision);
+    kprintf("  Creator Revision: 0x%08x\n", header->creator_revision);
 }
 
 void acpi_print_madt(const struct madt *madt) {
     puts("MADT:\n");
     acpi_print_description_header(&madt->header);
-    kprintf("  Local interrupt controller address: 0x%x\n",
+    kprintf("  Local interrupt controller address: 0x%08x\n",
             madt->lapic_phys_addr);
-    kprintf("  Flags: 0x%x\n", madt->flags);
+    kprintf("  Flags: 0x%08x\n", madt->flags);
 
     const struct madt_int_controller *int_controller = &madt->int_controllers;
     while ((uint64_t)int_controller - (uint64_t)madt < madt->header.length) {
-        kprintf("  Interrupt controller type: %x\n", int_controller->type);
+        kprintf("  Interrupt controller type: 0x%02x\n", int_controller->type);
 
         if (int_controller->type == MADT_INT_CONTROLLER_LAPIC) {
             const struct madt_int_controller_lapic *ic = (void *)int_controller;
@@ -167,8 +167,8 @@ void acpi_print_madt(const struct madt *madt) {
                 (void *)int_controller;
             kprintf("    Length: %u\n", ic->length);
             kprintf("    IO APIC ID: %u\n", ic->ioapic_id);
-            kprintf("    IO APIC Address: 0x%x\n", ic->ioapic_phys_addr);
-            kprintf("    Global System Interrupt Base: 0x%x\n",
+            kprintf("    IO APIC Address: 0x%08x\n", ic->ioapic_phys_addr);
+            kprintf("    Global System Interrupt Base: 0x%08x\n",
                     ic->system_vector_base);
         } else if (int_controller->type
                    == MADT_INT_CONTROLLER_INT_SRC_OVERRIDE) {
@@ -177,7 +177,7 @@ void acpi_print_madt(const struct madt *madt) {
             kprintf("    Length: %u\n", ic->length);
             kprintf("    Bus: %u\n", ic->bus);
             kprintf("    Source: %u\n", ic->source);
-            kprintf("    Global System Interrupt: 0x%x\n",
+            kprintf("    Global System Interrupt: 0x%08x\n",
                     ic->global_system_interrupt);
             kprintf("    Flags: %u\n", ic->flags);
         } else if (int_controller->type == MADT_INT_CONTROLLER_LAPIC_NMI) {
@@ -201,9 +201,9 @@ void acpi_print_hpet_description_table(
     const struct hpet_description_table *hpet) {
     puts("HPET:\n");
 
-    kprintf("  Event timer block id: %x\n", hpet->event_timer_block_id);
-    kprintf("  Base address: %lx\n", hpet->base_address.addr);
+    kprintf("  Event timer block id: 0x%08x\n", hpet->event_timer_block_id);
+    kprintf("  Base address: 0x%016lx\n", hpet->base_address.addr);
     kprintf("  HPET number: %u\n", hpet->hpet_num);
     kprintf("  Main counter minimum clock ticks: %u\n", hpet->min_ticks);
-    kprintf("  Attributes: %x\n", hpet->attrs);
+    kprintf("  Attributes: 0x%02hhx\n", hpet->attrs);
 }

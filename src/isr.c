@@ -132,14 +132,14 @@ __used static void stack_segment_fault(__unused struct context ctx) {
 
 DEF_ISR(13, general_protection);
 __used static void general_protection(__unused struct context ctx) {
-    log(LOG_LEVEL_DEBUG, "Interruption: General protection at %lx:%lx\n",
+    log(LOG_LEVEL_DEBUG, "Interruption: General protection at %016lx:%016lx\n",
         ctx.cs, ctx.rip);
     __asm__ volatile("xchg %bx, %bx\n");
 }
 
 DEF_ISR(14, page_fault);
 __used static void page_fault(__unused struct context ctx) {
-    log(LOG_LEVEL_DEBUG, "Interruption: Page fault at %lx:%lx\n", ctx.cs,
+    log(LOG_LEVEL_DEBUG, "Interruption: Page fault at %016lx:%016lx\n", ctx.cs,
         ctx.rip);
 }
 

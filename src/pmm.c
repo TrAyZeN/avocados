@@ -51,7 +51,8 @@ void pmm_init(const struct multiboot_tag_mmap *mmap_tag) {
     kassert(memory_map == NULL);
 
     log(LOG_LEVEL_WARN,
-        "PMM: Physical memory outside %lx-%lx will be considered free\n",
+        "PMM: Physical memory outside 0x%016lx-0x%016lx will be considered "
+        "free\n",
         (uint64_t)&_skern, (uint64_t)&_ekern);
 
     // Copy available memory map entries on the stack (in kernel range)
@@ -199,7 +200,7 @@ void pmm_init(const struct multiboot_tag_mmap *mmap_tag) {
 
         // TODO: Remove that
         if (first) {
-            kprintf("%lx\n", curr_memory_map->bitmap[0]);
+            kprintf("0x%016lx\n", curr_memory_map->bitmap[0]);
         }
 
         prev_memory_map = curr_memory_map;
@@ -277,7 +278,8 @@ void pmm_free(uint64_t addr) {
         }
     }
 
-    kpanic("pmm: Cannot free frame at %lx which is outside of mapped memory "
-           "regions\n",
-           addr);
+    kpanic(
+        "pmm: Cannot free frame at 0x%016lx which is outside of mapped memory "
+        "regions\n",
+        addr);
 }

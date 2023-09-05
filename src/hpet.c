@@ -61,7 +61,7 @@ void hpet_init(uint64_t hpet_phys_addr) {
     // Reset main counter
     *REG_MAIN_COUNTER_VALUE = 0;
 
-    kprintf("Timer 0 configuration: 0x%lx\n",
+    kprintf("Timer 0 configuration: 0x%016lx\n",
             *REG_TIMER_CONFIG_AND_CAPABILITY(0));
 
     // Note for timer interrupt route:
@@ -73,7 +73,7 @@ void hpet_init(uint64_t hpet_phys_addr) {
         VAL_SET_CNF_ENABLE, 0, 0, 0, 0);
     *REG_TIMER_COMPARATOR(0) = 100000000;
 
-    kprintf("Timer 0 configuration: 0x%lx\n",
+    kprintf("Timer 0 configuration: 0x%016lx\n",
             *REG_TIMER_CONFIG_AND_CAPABILITY(0));
 
     // Enable counters and support legacy replacement route

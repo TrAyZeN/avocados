@@ -16,3 +16,14 @@ int strncmp(const char *s1, const char *s2, uint64_t n) {
 
     return i == n ? 0 : s1[i] - s2[i];
 }
+
+uint64_t strlen(const char *s) {
+    uint64_t len = 0;
+
+    while (*s != '\0') {
+        len += 1;
+        s += 1;
+    }
+
+    return len;
+}
