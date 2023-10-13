@@ -11,8 +11,8 @@
 #define FG_WHITE (15 << 8)
 
 static struct framebuffer framebuffer;
-static uint64_t framebuffer_phys_addr;
-static uint32_t framebuffer_width, framebuffer_height;
+static u64 framebuffer_phys_addr;
+static u32 framebuffer_width, framebuffer_height;
 
 static void fb_clear_line(void);
 
@@ -25,15 +25,15 @@ void fb_prepare(const struct multiboot_tag_framebuffer *framebuffer_tag) {
     framebuffer_height = framebuffer_tag->common.framebuffer_height;
 }
 
-uint64_t fb_init(void) {
-    uint64_t res = vmm_map_physical(
+u64 fb_init(void) {
+    u64 res = vmm_map_physical(
         FB_VIRT_ADDR, framebuffer_phys_addr,
         ALIGN_UP(framebuffer_width * framebuffer_height * 16, PAGE_SIZE), 0);
     if (res != 0) {
         return res;
     }
 
-    framebuffer.buf = (volatile uint16_t *)FB_VIRT_ADDR;
+    framebuffer.buf = (volatile u16 *)FB_VIRT_ADDR;
     framebuffer.width = framebuffer_width;
     framebuffer.height = framebuffer_height;
     framebuffer.x = 0;
@@ -65,7 +65,7 @@ void fb_putchar(char c) {
 }
 
 void fb_puts(const char *str) {
-    uint64_t i = 0;
+    u64 i = 0;
     while (str[i] != '\0') {
         fb_putchar(str[i]);
         i += 1;
@@ -73,7 +73,7 @@ void fb_puts(const char *str) {
 }
 
 static void fb_clear_line(void) {
-    for (uint32_t x = 0; x < framebuffer.width; ++x) {
+    for (u32 x = 0; x < framebuffer.width; ++x) {
         framebuffer.buf[x + framebuffer.y * framebuffer.width] = ' ' | FG_WHITE;
     }
 }

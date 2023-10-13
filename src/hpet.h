@@ -1,8 +1,8 @@
 #ifndef AVOCADOS_HPET_H_
 #define AVOCADOS_HPET_H_
 
-#include <stdint.h>
+#include "types.h"
 
-void hpet_init(uint64_t hpet_phys_addr);
+void hpet_init(u64 hpet_phys_addr);
 
 #endif /* ! AVOCADOS_HPET_H_ */

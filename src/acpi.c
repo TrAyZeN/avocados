@@ -8,8 +8,8 @@
 #include "vmm.h"
 
 struct rsdp g_rsdp;
-uint64_t acpi_region_addr;
-uint64_t acpi_region_len;
+u64 acpi_region_addr;
+u64 acpi_region_len;
 
 // This function does not init ACPI but stores ACPI informations to be able to
 // use ACPI after pmm_init.
@@ -27,7 +27,7 @@ void acpi_prepare(const struct multiboot_tag_old_acpi *old_acpi_tag,
     acpi_print_rsdp(&g_rsdp);
 
     bool acpi_region_found = false;
-    for (uint64_t i = 0; sizeof(struct multiboot_tag_mmap)
+    for (u64 i = 0; sizeof(struct multiboot_tag_mmap)
              + i * sizeof(struct multiboot_mmap_entry)
          < mmap_tag->size;
          i++) {
@@ -45,7 +45,7 @@ void acpi_prepare(const struct multiboot_tag_old_acpi *old_acpi_tag,
     kassert(acpi_region_found);
 }
 
-uint64_t acpi_map_region(void) {
+u64 acpi_map_region(void) {
     return vmm_map_physical(ACPI_VIRT_ADDR, acpi_region_addr, acpi_region_len,
                             0);
 }
@@ -55,8 +55,8 @@ const struct description_header *acpi_rsdt_find_table(char signature[4]) {
     const struct rsdt *rsdt = (void *)ACPI_PHYS_TO_VIRT(g_rsdp.rsdt_phys_addr);
 
     const struct description_header *description_header = NULL;
-    for (uint64_t i = 0; i * sizeof(uint32_t) + offsetof(struct rsdt, entry)
-         < rsdt->header.length;
+    for (u64 i = 0;
+         i * sizeof(u32) + offsetof(struct rsdt, entry) < rsdt->header.length;
          ++i) {
         kassert(rsdt->entry[i] > acpi_region_addr
                 && rsdt->entry[i] < acpi_region_addr + acpi_region_len);
@@ -74,9 +74,9 @@ const struct description_header *acpi_rsdt_find_table(char signature[4]) {
 }
 
 // Returns 0xffffffff if no IO APIC structure is found
-uint32_t acpi_madt_find_ioapic_addr(const struct madt *madt) {
+u32 acpi_madt_find_ioapic_addr(const struct madt *madt) {
     const struct madt_int_controller *int_controller = &madt->int_controllers;
-    while ((uint64_t)int_controller - (uint64_t)madt < madt->header.length) {
+    while ((u64)int_controller - (u64)madt < madt->header.length) {
         if (int_controller->type == MADT_INT_CONTROLLER_IOAPIC) {
             const struct madt_int_controller_ioapic *ic =
                 (void *)int_controller;
@@ -85,27 +85,26 @@ uint32_t acpi_madt_find_ioapic_addr(const struct madt *madt) {
 
         // WARN: Here we assume that the length is the second byte for all
         // the variant (which is true for ACPI 6.5)
-        uint8_t int_controller_len = *((uint8_t *)int_controller + 1);
-        int_controller =
-            (void *)((uint64_t)int_controller + int_controller_len);
+        u8 int_controller_len = *((u8 *)int_controller + 1);
+        int_controller = (void *)((u64)int_controller + int_controller_len);
     }
 
     return 0xffffffff;
 }
 
 bool acpi_rsdp_is_valid_checksum(const struct rsdp *rsdp) {
-    uint8_t sum = 0;
-    for (uint32_t i = 0; i < sizeof(struct rsdp); ++i) {
-        sum += ((const uint8_t *)rsdp)[i];
+    u8 sum = 0;
+    for (u32 i = 0; i < sizeof(struct rsdp); ++i) {
+        sum += ((const u8 *)rsdp)[i];
     }
 
     return sum == 0;
 }
 
 bool acpi_table_is_valid_checksum(const struct description_header *header) {
-    uint8_t sum = 0;
-    for (uint32_t i = 0; i < header->length; ++i) {
-        sum += ((const uint8_t *)header)[i];
+    u8 sum = 0;
+    for (u32 i = 0; i < header->length; ++i) {
+        sum += ((const u8 *)header)[i];
     }
 
     return sum == 0;
@@ -153,7 +152,7 @@ void acpi_print_madt(const struct madt *madt) {
     kprintf("  Flags: 0x%08x\n", madt->flags);
 
     const struct madt_int_controller *int_controller = &madt->int_controllers;
-    while ((uint64_t)int_controller - (uint64_t)madt < madt->header.length) {
+    while ((u64)int_controller - (u64)madt < madt->header.length) {
         kprintf("  Interrupt controller type: 0x%02x\n", int_controller->type);
 
         if (int_controller->type == MADT_INT_CONTROLLER_LAPIC) {
@@ -191,9 +190,8 @@ void acpi_print_madt(const struct madt *madt) {
 
         // WARN: Here we assume that the length is the second byte for all
         // the variant (which is true for ACPI 6.5)
-        uint8_t int_controller_len = *((uint8_t *)int_controller + 1);
-        int_controller =
-            (void *)((uint64_t)int_controller + int_controller_len);
+        u8 int_controller_len = *((u8 *)int_controller + 1);
+        int_controller = (void *)((u64)int_controller + int_controller_len);
     }
 }
 

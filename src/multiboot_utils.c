@@ -1,7 +1,6 @@
-#include <stdint.h>
-
 #include "kprintf.h"
 #include "multiboot_utils.h"
+#include "types.h"
 
 struct multiboot_tag *multiboot_find_tag(struct multiboot_tag *tag,
                                          multiboot_uint16_t type) {
@@ -16,7 +15,7 @@ struct multiboot_tag *multiboot_find_tag(struct multiboot_tag *tag,
 void multiboot_print_mmap(const struct multiboot_tag_mmap *mmap_tag) {
     puts("multiboot mmap:\n");
 
-    for (uint64_t i = 0; sizeof(struct multiboot_tag_mmap)
+    for (u64 i = 0; sizeof(struct multiboot_tag_mmap)
              + i * sizeof(struct multiboot_mmap_entry)
          < mmap_tag->size;
          i++) {

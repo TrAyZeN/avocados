@@ -81,7 +81,7 @@ bool serial_can_transmit(enum serial_port port) {
     return inb(PORT_SERIAL_REG_LSR(port)) & (1 << 5);
 }
 
-void serial_write_byte(enum serial_port port, uint8_t byte) {
+void serial_write_byte(enum serial_port port, u8 byte) {
     while (!serial_can_transmit(port)) {
         pause();
     }

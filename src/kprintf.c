@@ -3,6 +3,7 @@
 #include "kassert.h"
 #include "kprintf.h"
 #include "serial.h"
+#include "types.h"
 #include "utils.h"
 
 enum length_modifier {
@@ -13,9 +14,8 @@ enum length_modifier {
     LM_LL,
 };
 
-static uint64_t num_to_str(uint64_t num, char *str, uint8_t base, bool upper,
-                           bool num_signed);
-static void pad(uint64_t field_length, uint64_t field_width, char padding_char);
+static u64 num_to_str(u64 num, char *str, u8 base, bool upper, bool num_signed);
+static void pad(u64 field_length, u64 field_width, char padding_char);
 
 /*
  * Print a string to the serial port COM1
@@ -45,12 +45,12 @@ void kvprintf(const char *fmt, va_list ap) {
     char int_buf[23];
     unsigned long long arg;
     enum length_modifier length_modifier;
-    uint8_t base;
+    u8 base;
     char padding_char;
-    uint64_t field_width;
-    uint64_t num_field_length;
+    u64 field_width;
+    u64 num_field_length;
 
-    for (uint64_t i = 0; fmt[i] != '\0'; i++) {
+    for (u64 i = 0; fmt[i] != '\0'; i++) {
         if (fmt[i] == '%') {
             i += 1;
 
@@ -158,19 +158,19 @@ void kvprintf(const char *fmt, va_list ap) {
 
 // str buffer must be big enough
 // base must be == 8 or == 10 or == 16
-static uint64_t num_to_str(uint64_t num, char *str, uint8_t base, bool upper,
-                           bool num_signed) {
+static u64 num_to_str(u64 num, char *str, u8 base, bool upper,
+                      bool num_signed) {
     static const char digits[16] = "0123456789abcdef";
 
     kassert(base == 8 || base == 10 || base == 16);
 
-    uint64_t i = 0;
+    u64 i = 0;
     bool negative = false;
     if (num == 0) {
         str[i++] = '0';
-    } else if (num_signed && (int64_t)num < 0) {
+    } else if (num_signed && (i64)num < 0) {
         str[i++] = '-';
-        num = (uint64_t)(-(int64_t)num);
+        num = (u64)(-(i64)num);
         negative = true;
     }
 
@@ -188,13 +188,13 @@ static uint64_t num_to_str(uint64_t num, char *str, uint8_t base, bool upper,
     // TODO: No revert needed
     // Revert str
     if (negative) {
-        for (uint64_t j = 0; j < (i - 1) / 2; j++) {
+        for (u64 j = 0; j < (i - 1) / 2; j++) {
             char tmp = str[j + 1];
             str[j + 1] = str[i - j - 1];
             str[i - j - 1] = tmp;
         }
     } else {
-        for (uint64_t j = 0; j < i / 2; j++) {
+        for (u64 j = 0; j < i / 2; j++) {
             char tmp = str[j];
             str[j] = str[i - j - 1];
             str[i - j - 1] = tmp;
@@ -204,10 +204,9 @@ static uint64_t num_to_str(uint64_t num, char *str, uint8_t base, bool upper,
     return i;
 }
 
-static void pad(uint64_t field_length, uint64_t field_width,
-                char padding_char) {
+static void pad(u64 field_length, u64 field_width, char padding_char) {
     if (field_width > field_length) {
-        for (uint64_t i = 0; i < field_width - field_length; ++i) {
+        for (u64 i = 0; i < field_width - field_length; ++i) {
             putchar(padding_char);
         }
     }

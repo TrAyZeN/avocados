@@ -1,7 +1,7 @@
 #ifndef AVOCADOS_INSTR_H_
 #define AVOCADOS_INSTR_H_
 
-#include <stdint.h>
+#include "types.h"
 
 static inline void sti(void) {
     __asm__ volatile("sti");
@@ -19,36 +19,36 @@ static inline void pause(void) {
     __asm__ volatile("pause");
 }
 
-static inline void outb(uint16_t port, uint8_t val) {
+static inline void outb(u16 port, u8 val) {
     __asm__ volatile("outb %0, %1" : /* No output */ : "a"(val), "d"(port));
 }
 
-static inline uint8_t inb(uint16_t port) {
-    uint8_t res;
+static inline u8 inb(u16 port) {
+    u8 res;
 
     __asm__ volatile("inb %1, %0" : "=&a"(res) : "d"(port));
 
     return res;
 }
 
-static inline void outw(uint16_t port, uint16_t val) {
+static inline void outw(u16 port, u16 val) {
     __asm__ volatile("outw %0, %1" : /* No output */ : "a"(val), "d"(port));
 }
 
-static inline uint16_t inw(uint16_t port) {
-    uint16_t res;
+static inline u16 inw(u16 port) {
+    u16 res;
 
     __asm__ volatile("inw %1, %0" : "=&a"(res) : "d"(port));
 
     return res;
 }
 
-static inline uint64_t rdmsr(uint32_t msr) {
-    uint32_t res_lo, res_hi;
+static inline u64 rdmsr(u32 msr) {
+    u32 res_lo, res_hi;
 
     __asm__ volatile("rdmsr" : "=&d"(res_hi), "=&a"(res_lo) : "c"(msr));
 
-    return ((uint64_t)res_hi << 32) | res_lo;
+    return ((u64)res_hi << 32) | res_lo;
 }
 
 #endif /* ! AVOCADOS_INSTR_H_ */

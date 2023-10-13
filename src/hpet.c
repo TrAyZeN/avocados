@@ -9,16 +9,16 @@
 #define HPET_VIRT_ADDR 0x0000001100002000UL
 
 #define REG_GENERAL_CAPABILITIES_AND_ID                                        \
-    ((volatile uint64_t *)(HPET_VIRT_ADDR + 0x00))
+    ((volatile u64 *)(HPET_VIRT_ADDR + 0x00))
 // Software should not modify the value in these bits until they are define.
 // This is done by doing a "read-modify-write" to this register. (See HPET
 // specification 1.0a, 2.3.5)
-#define REG_GENERAL_CONFIG ((volatile uint64_t *)(HPET_VIRT_ADDR + 0x10))
-#define REG_MAIN_COUNTER_VALUE ((volatile uint64_t *)(HPET_VIRT_ADDR + 0xf0))
+#define REG_GENERAL_CONFIG ((volatile u64 *)(HPET_VIRT_ADDR + 0x10))
+#define REG_MAIN_COUNTER_VALUE ((volatile u64 *)(HPET_VIRT_ADDR + 0xf0))
 #define REG_TIMER_CONFIG_AND_CAPABILITY(TIMER_NUM)                             \
-    ((volatile uint64_t *)(HPET_VIRT_ADDR + 0x100 + (TIMER_NUM)*0x20))
+    ((volatile u64 *)(HPET_VIRT_ADDR + 0x100 + (TIMER_NUM)*0x20))
 #define REG_TIMER_COMPARATOR(TIMER_NUM)                                        \
-    ((volatile uint64_t *)(HPET_VIRT_ADDR + 0x108 + (TIMER_NUM)*0x20))
+    ((volatile u64 *)(HPET_VIRT_ADDR + 0x108 + (TIMER_NUM)*0x20))
 
 #define GET_NUM_TIM_CAP(VAL) (BIT_RANGE(VAL, 8, 12))
 #define GET_LEG_RT_CAP(VAL) (BIT_RANGE(VAL, 15, 15))
@@ -39,18 +39,18 @@
      | BIT_BLOCK(MODE32_CNF, 8, 8) | BIT_BLOCK(INT_ROUTE_CNF, 9, 13)           \
      | BIT_BLOCK(FSB_EN_CNF, 14, 14) | BIT_BLOCK(INT_ROUTE_CAP, 32, 64))
 
-static void hpet_set_general_config(uint8_t overall_enable,
-                                    uint8_t legacy_replacement_route);
+static void hpet_set_general_config(u8 overall_enable,
+                                    u8 legacy_replacement_route);
 static void hpet_print_general_capabilities_and_id(void);
 
-void hpet_init(uint64_t hpet_phys_addr) {
-    uint64_t res = vmm_map_physical(HPET_VIRT_ADDR, hpet_phys_addr, 4096, 0);
+void hpet_init(u64 hpet_phys_addr) {
+    u64 res = vmm_map_physical(HPET_VIRT_ADDR, hpet_phys_addr, 4096, 0);
     if (res == VMM_ALLOC_ERROR) {
         kpanic("Failed to map HPET registers\n");
     }
 
     hpet_print_general_capabilities_and_id();
-    uint64_t general_capabilities_and_id = *REG_GENERAL_CAPABILITIES_AND_ID;
+    u64 general_capabilities_and_id = *REG_GENERAL_CAPABILITIES_AND_ID;
     kassert(GET_LEG_RT_CAP(general_capabilities_and_id) == 1);
     kassert(GET_NUM_TIM_CAP(general_capabilities_and_id)
             >= 1); // at least 2 timers
@@ -84,13 +84,13 @@ void hpet_init(uint64_t hpet_phys_addr) {
     ioapic_unmask_interrupt(2);
 }
 
-static void hpet_set_general_config(uint8_t overall_enable,
-                                    uint8_t legacy_replacement_route) {
+static void hpet_set_general_config(u8 overall_enable,
+                                    u8 legacy_replacement_route) {
     // Only one bit values
     kassert((overall_enable & 1) == overall_enable);
     kassert((legacy_replacement_route & 1) == legacy_replacement_route);
 
-    uint64_t general_configuration = *REG_GENERAL_CONFIG;
+    u64 general_configuration = *REG_GENERAL_CONFIG;
     general_configuration |= ((overall_enable & 1U) << ENABLE_CNF_BIT)
         | ((legacy_replacement_route & 1U) << LEG_RT_CNF_BIT);
     // xor 1 is used to invert the bit value for the and mask
@@ -101,7 +101,7 @@ static void hpet_set_general_config(uint8_t overall_enable,
 }
 
 static void hpet_print_general_capabilities_and_id(void) {
-    uint64_t general_capabilities_and_id = *REG_GENERAL_CAPABILITIES_AND_ID;
+    u64 general_capabilities_and_id = *REG_GENERAL_CAPABILITIES_AND_ID;
 
     kprintf("Revision id: %lu\n", general_capabilities_and_id & 0xff);
     kprintf("Number of timers: %lu\n",

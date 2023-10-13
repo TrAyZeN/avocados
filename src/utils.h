@@ -14,20 +14,19 @@
 
 #ifndef __ASSEMBLER__
 
-#include <stdint.h>
-
 #include "attributes.h"
+#include "types.h"
 
 // Descriptor stored in GDTR, IDTR and LTDR.
 // See Vol. 3A 3.5.1
 struct pseudo_descriptor64 {
-    uint16_t size;
-    uint64_t offset;
+    u16 size;
+    u64 offset;
 } __packed;
 
-void memset(uint8_t *mem, uint8_t value, uint64_t n);
-int strncmp(const char *s1, const char *s2, uint64_t n);
-uint64_t strlen(const char *s);
+void memset(u8 *mem, u8 value, u64 n);
+int strncmp(const char *s1, const char *s2, u64 n);
+u64 strlen(const char *s);
 
 // ALIGN must be a power of two
 /* #define ALIGN_UP(VALUE, ALIGN) ((VALUE) & ~((ALIGN)-1)) */

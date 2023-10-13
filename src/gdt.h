@@ -39,9 +39,8 @@
 
 #ifndef __ASSEMBLER__
 
-#include <stdint.h>
-
 #include "attributes.h"
+#include "types.h"
 
 /*
  * Segment descriptor format (see Vol. 3A 3.4.5):
@@ -64,18 +63,18 @@
  * - gran: If set the granularity of the limit is 4096B else 1B.
  */
 struct segment_descriptor {
-    uint32_t limit_lo : 16;
-    uint32_t base_lo : 24;
-    uint32_t type : 4;
-    uint32_t system : 1;
-    uint32_t dpl : 2;
-    uint32_t present : 1;
-    uint32_t limit_hi : 4;
-    uint32_t : 1;
-    uint32_t long_mode : 1;
-    uint32_t db : 1;
-    uint32_t gran : 1;
-    uint32_t base_hi : 8;
+    u32 limit_lo : 16;
+    u32 base_lo : 24;
+    u32 type : 4;
+    u32 system : 1;
+    u32 dpl : 2;
+    u32 present : 1;
+    u32 limit_hi : 4;
+    u32 : 1;
+    u32 long_mode : 1;
+    u32 db : 1;
+    u32 gran : 1;
+    u32 base_hi : 8;
 } __packed;
 _Static_assert(sizeof(struct segment_descriptor) == 8,
                "Invalid segment descriptor size");
@@ -93,18 +92,18 @@ _Static_assert(sizeof(struct segment_descriptor) == 8,
 
 // Vol. 3A 8.2.3
 struct tss_descriptor {
-    uint32_t limit_lo : 16;
-    uint32_t base_lo : 24;
-    uint32_t type : 4;
-    uint32_t : 1;
-    uint32_t dpl : 2;
-    uint32_t present : 1;
-    uint32_t limit_hi : 4;
-    uint32_t : 3;
-    uint32_t gran : 1;
-    uint32_t base_mid : 8;
-    uint32_t base_hi;
-    uint32_t : 32;
+    u32 limit_lo : 16;
+    u32 base_lo : 24;
+    u32 type : 4;
+    u32 : 1;
+    u32 dpl : 2;
+    u32 present : 1;
+    u32 limit_hi : 4;
+    u32 : 3;
+    u32 gran : 1;
+    u32 base_mid : 8;
+    u32 base_hi;
+    u32 : 32;
 } __packed;
 _Static_assert(sizeof(struct tss_descriptor) == 16,
                "Invalid TSS descriptor size");
@@ -115,7 +114,7 @@ _Static_assert(sizeof(struct tss_descriptor) == 16,
         .type = SEG_TYPE_TSS_AVL, .dpl = SEG_DPL_RING_0,                       \
         .present = SEG_PRESENT, .limit_hi = ((LIMIT) >> 16) & 0xf,             \
         .gran = SEG_GRAN_1B, .base_mid = ((BASE) >> 24) & 0xff,                \
-        .base_hi = (uint32_t)((BASE) >> 32) & 0xffffffff,                      \
+        .base_hi = (u32)((BASE) >> 32) & 0xffffffff,                           \
     }
 
 // A 64-bit TSS holds the following information that is important to 64-bit
@@ -125,33 +124,33 @@ _Static_assert(sizeof(struct tss_descriptor) == 16,
 // - Offset address of the IO-permission bitmap
 // Vol. 3A 2.1.3.1
 struct tss {
-    uint32_t : 32;
-    uint32_t rsp0_lo;
-    uint32_t rsp0_hi;
-    uint32_t rsp1_lo;
-    uint32_t rsp1_hi;
-    uint32_t rsp2_lo;
-    uint32_t rsp2_hi;
-    uint32_t : 32;
-    uint32_t : 32;
-    uint32_t ist1_lo;
-    uint32_t ist1_hi;
-    uint32_t ist2_lo;
-    uint32_t ist2_hi;
-    uint32_t ist3_lo;
-    uint32_t ist3_hi;
-    uint32_t ist4_lo;
-    uint32_t ist4_hi;
-    uint32_t ist5_lo;
-    uint32_t ist5_hi;
-    uint32_t ist6_lo;
-    uint32_t ist6_hi;
-    uint32_t ist7_lo;
-    uint32_t ist7_hi;
-    uint32_t : 32;
-    uint32_t : 32;
-    uint16_t : 16;
-    uint16_t io_map_base;
+    u32 : 32;
+    u32 rsp0_lo;
+    u32 rsp0_hi;
+    u32 rsp1_lo;
+    u32 rsp1_hi;
+    u32 rsp2_lo;
+    u32 rsp2_hi;
+    u32 : 32;
+    u32 : 32;
+    u32 ist1_lo;
+    u32 ist1_hi;
+    u32 ist2_lo;
+    u32 ist2_hi;
+    u32 ist3_lo;
+    u32 ist3_hi;
+    u32 ist4_lo;
+    u32 ist4_hi;
+    u32 ist5_lo;
+    u32 ist5_hi;
+    u32 ist6_lo;
+    u32 ist6_hi;
+    u32 ist7_lo;
+    u32 ist7_hi;
+    u32 : 32;
+    u32 : 32;
+    u16 : 16;
+    u16 io_map_base;
 } __packed;
 
 void load_tss(void);

@@ -1,34 +1,33 @@
-#include <stdint.h>
-
 #include "kassert.h"
 #include "kprintf.h"
+#include "types.h"
 
-extern uint8_t _eh_frame_start;
+extern u8 _eh_frame_start;
 
 #define DWARF_CIE_AUG_SIZE (1 << 0)
 #define DWARF_CIE_AUG_CODE_ENC (1 << 1)
 
 struct dwarf_cie {
-    uint32_t length;
-    uint32_t id;
-    uint8_t version;
-    uint8_t augmentation;
-    uint64_t code_alignment_factor;
-    int64_t data_alignment_factor;
-    uint64_t return_address_register;
-    const uint8_t *instructions;
+    u32 length;
+    u32 id;
+    u8 version;
+    u8 augmentation;
+    u64 code_alignment_factor;
+    i64 data_alignment_factor;
+    u64 return_address_register;
+    const u8 *instructions;
 };
 
 struct dwarf_fde {
-    uint32_t length;
+    u32 length;
     const struct dwarf_cie *cie;
 };
 
-static uint64_t decode_uleb128(const uint8_t *buf, uint64_t *result) {
+static u64 decode_uleb128(const u8 *buf, u64 *result) {
     *result = 0;
 
-    uint64_t i = 0;
-    uint64_t shift = 0;
+    u64 i = 0;
+    u64 shift = 0;
     while (((buf[i] >> 8) & 1) == 1) {
         kassert(i * 7 + 7 < 64);
 
@@ -46,11 +45,11 @@ static uint64_t decode_uleb128(const uint8_t *buf, uint64_t *result) {
     return i;
 }
 
-static uint64_t decode_sleb128(const uint8_t *buf, int64_t *result) {
+static u64 decode_sleb128(const u8 *buf, i64 *result) {
     *result = 0;
 
-    uint64_t i = 0;
-    uint64_t shift = 0;
+    u64 i = 0;
+    u64 shift = 0;
     while (((buf[i] >> 8) & 1) == 1) {
         kassert(i * 7 + 7 < 64);
 
@@ -68,20 +67,20 @@ static uint64_t decode_sleb128(const uint8_t *buf, int64_t *result) {
 
     // Sign extend negative
     if (shift < 64 && (*result & (1 << (shift - 1))) != 0) {
-        *result = (int64_t)(*(uint64_t *)result | (~0UL << shift));
+        *result = (i64)(*(u64 *)result | (~0UL << shift));
     }
 
     return i;
 }
 
-static uint64_t dwarf_parse_cie(const uint8_t *buf, struct dwarf_cie *cie) {
-    cie->length = *(uint32_t *)buf;
-    cie->id = *(uint32_t *)(buf + 4);
+static u64 dwarf_parse_cie(const u8 *buf, struct dwarf_cie *cie) {
+    cie->length = *(u32 *)buf;
+    cie->id = *(u32 *)(buf + 4);
     kassert(cie->id == 0);
 
     cie->version = buf[8];
 
-    uint64_t offset = 9;
+    u64 offset = 9;
     cie->augmentation = 0;
     while (buf[offset] != '\0') {
         switch (buf[offset]) {
@@ -122,12 +121,12 @@ static void dwarf_print_cie(const struct dwarf_cie *cie) {
     kprintf("  Return address register: %lu\n", cie->return_address_register);
 }
 
-static uint64_t dwarf_parse_fde(const uint8_t *buf, struct dwarf_fde *fde,
-                                const struct dwarf_cie *cie) {
-    fde->length = *(uint32_t *)buf;
+static u64 dwarf_parse_fde(const u8 *buf, struct dwarf_fde *fde,
+                           const struct dwarf_cie *cie) {
+    fde->length = *(u32 *)buf;
     // We make the assumption that there is only one CIE
     fde->cie = cie;
-    kassert(*(uint32_t *)(buf + 4) != 0);
+    kassert(*(u32 *)(buf + 4) != 0);
 
     // TODO: Initial location
 
@@ -144,9 +143,9 @@ static void dwarf_print_fde(const struct dwarf_fde *fde) {
 // TODO: Check .eh_frame's DWARF version
 // return_address_register type depends on DWARF version
 void backtrace(void) {
-    /* kprintf("_eh_frame_start: %lx\n", (uint64_t)&_eh_frame_start); */
-    /* for (uint64_t i = 0; i < 20; ++i) { */
-    /* uint8_t byte = ((uint8_t *)&_eh_frame_start)[i]; */
+    /* kprintf("_eh_frame_start: %lx\n", (u64)&_eh_frame_start); */
+    /* for (u64 i = 0; i < 20; ++i) { */
+    /* u8 byte = ((u8 *)&_eh_frame_start)[i]; */
     /* kprintf("%x ", byte); */
     /* } */
     /* puts("\n"); */
@@ -154,9 +153,9 @@ void backtrace(void) {
     struct dwarf_cie cie;
     struct dwarf_fde fde;
 
-    const uint8_t *eh_frame = &_eh_frame_start;
+    const u8 *eh_frame = &_eh_frame_start;
 
-    uint64_t offset = 0;
+    u64 offset = 0;
     offset += dwarf_parse_cie(eh_frame, &cie);
     dwarf_print_cie(&cie);
 

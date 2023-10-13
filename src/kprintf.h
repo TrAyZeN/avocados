@@ -2,7 +2,6 @@
 #define AVOCADOS_KPRINTF_H_
 
 #include <stdarg.h>
-#include <stdint.h>
 
 #include "attributes.h"
 

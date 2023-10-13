@@ -4,15 +4,22 @@
 #include "pmm.h"
 #include "vmm.h"
 
-static uint64_t vmm_alloc_paging_structs(uint64_t addr);
+static u64 vmm_alloc_paging_structs(u64 addr);
 
 void vmm_init(void) {
-    extern uint8_t _srodata, _erodata;
-    extern uint8_t _eh_frame_start, _eh_frame_end;
-    extern uint8_t _sdata, _edata;
-    extern uint8_t _sbss, _ebss;
+    extern u8 _srodata, _erodata;
+    extern u8 _eh_frame_start, _eh_frame_end;
+    extern u8 _sdata, _edata;
+    extern u8 _sbss, _ebss;
 
-    for (uint64_t addr = (uint64_t)&_srodata; addr < (uint64_t)&_erodata;
+    for (u64 addr = (u64)&_srodata; addr < (u64)&_erodata; addr += PAGE_SIZE) {
+        struct pte *pte = get_pte(addr);
+
+        pte->rw = 0;
+        pte->xd = 1;
+    }
+
+    for (u64 addr = (u64)&_eh_frame_start; addr < (u64)&_eh_frame_end;
          addr += PAGE_SIZE) {
         struct pte *pte = get_pte(addr);
 
@@ -20,31 +27,21 @@ void vmm_init(void) {
         pte->xd = 1;
     }
 
-    for (uint64_t addr = (uint64_t)&_eh_frame_start;
-         addr < (uint64_t)&_eh_frame_end; addr += PAGE_SIZE) {
+    for (u64 addr = (u64)&_eh_frame_start; addr < (u64)&_eh_frame_end;
+         addr += PAGE_SIZE) {
         struct pte *pte = get_pte(addr);
 
         pte->rw = 0;
         pte->xd = 1;
     }
 
-    for (uint64_t addr = (uint64_t)&_eh_frame_start;
-         addr < (uint64_t)&_eh_frame_end; addr += PAGE_SIZE) {
-        struct pte *pte = get_pte(addr);
-
-        pte->rw = 0;
-        pte->xd = 1;
-    }
-
-    for (uint64_t addr = (uint64_t)&_sdata; addr < (uint64_t)&_edata;
-         addr += PAGE_SIZE) {
+    for (u64 addr = (u64)&_sdata; addr < (u64)&_edata; addr += PAGE_SIZE) {
         struct pte *pte = get_pte(addr);
 
         pte->xd = 1;
     }
 
-    for (uint64_t addr = (uint64_t)&_sbss; addr < (uint64_t)&_ebss;
-         addr += PAGE_SIZE) {
+    for (u64 addr = (u64)&_sbss; addr < (u64)&_ebss; addr += PAGE_SIZE) {
         struct pte *pte = get_pte(addr);
 
         pte->xd = 1;
@@ -53,11 +50,11 @@ void vmm_init(void) {
     log(LOG_LEVEL_INFO, "VMM: VMM initialized\n");
 }
 
-uint64_t vmm_alloc(uint64_t addr, uint32_t flags) {
+u64 vmm_alloc(u64 addr, u32 flags) {
     kassert(addr % PAGE_SIZE == 0);
     kassert(is_canonical(addr));
 
-    uint64_t res = vmm_alloc_paging_structs(addr);
+    u64 res = vmm_alloc_paging_structs(addr);
     if (res == PMM_ALLOC_ERROR) {
         goto failed_paging_structs_alloc;
     }
@@ -65,7 +62,7 @@ uint64_t vmm_alloc(uint64_t addr, uint32_t flags) {
     struct pte *pte = get_pte(addr);
     kassert(!pte->present);
 
-    uint64_t page_phys_addr = pmm_alloc();
+    u64 page_phys_addr = pmm_alloc();
     if (page_phys_addr == PMM_ALLOC_ERROR) {
         goto failed_page_alloc;
     }
@@ -77,7 +74,7 @@ uint64_t vmm_alloc(uint64_t addr, uint32_t flags) {
         .addr = BIT_RANGE(page_phys_addr, 12, 51),
         .xd = ((flags & VMM_ALLOC_EXEC) ? 0U : 1U) & 1,
     };
-    memset((uint8_t *)addr, 0, PAGE_SIZE);
+    memset((u8 *)addr, 0, PAGE_SIZE);
 
     return addr;
 
@@ -88,7 +85,7 @@ failed_page_alloc:
 }
 
 // Free a single page
-void vmm_free(uint64_t addr) {
+void vmm_free(u64 addr) {
     kassert(addr % PAGE_SIZE == 0);
     kassert(is_canonical(addr));
 
@@ -97,15 +94,14 @@ void vmm_free(uint64_t addr) {
     pmm_free(pte->addr << 12);
 }
 
-uint64_t vmm_map_physical(uint64_t virt_addr, uint64_t phys_addr, uint64_t len,
-                          uint32_t flags) {
+u64 vmm_map_physical(u64 virt_addr, u64 phys_addr, u64 len, u32 flags) {
     kassert(virt_addr % PAGE_SIZE == 0);
     kassert(is_canonical(virt_addr));
     kassert(phys_addr % PAGE_SIZE == 0);
     kassert(len % PAGE_SIZE == 0);
 
-    for (uint64_t offset = 0; offset < len; offset += PAGE_SIZE) {
-        uint64_t res = vmm_alloc_paging_structs(virt_addr + offset);
+    for (u64 offset = 0; offset < len; offset += PAGE_SIZE) {
+        u64 res = vmm_alloc_paging_structs(virt_addr + offset);
         if (res == VMM_ALLOC_ERROR) {
             goto failed_paging_structs_alloc;
         }
@@ -128,7 +124,7 @@ failed_paging_structs_alloc:
     return VMM_ALLOC_ERROR;
 }
 
-static uint64_t vmm_alloc_paging_structs(uint64_t addr) {
+static u64 vmm_alloc_paging_structs(u64 addr) {
     kassert(addr % PAGE_SIZE == 0);
     kassert(is_canonical(addr));
 
@@ -138,7 +134,7 @@ static uint64_t vmm_alloc_paging_structs(uint64_t addr) {
     if (!pml4e->present) {
         log(LOG_LEVEL_DEBUG, "VMM: pml4e not present\n");
 
-        uint64_t pdpt_phys_addr = pmm_alloc();
+        u64 pdpt_phys_addr = pmm_alloc();
         if (pdpt_phys_addr == PMM_ALLOC_ERROR) {
             goto failed_pdpt_alloc;
         }
@@ -152,15 +148,14 @@ static uint64_t vmm_alloc_paging_structs(uint64_t addr) {
         };
 
         // Zero initialize the table so that present bits are 0
-        memset((uint8_t *)ALIGN_DOWN((uint64_t)get_pdpte(addr), PAGE_SIZE), 0,
-               PAGE_SIZE);
+        memset((u8 *)ALIGN_DOWN((u64)get_pdpte(addr), PAGE_SIZE), 0, PAGE_SIZE);
     }
 
     struct pdpte *pdpte = get_pdpte(addr);
     if (!pdpte->present) {
         log(LOG_LEVEL_DEBUG, "VMM: pdpte not present\n");
 
-        uint64_t pdt_phys_addr = pmm_alloc();
+        u64 pdt_phys_addr = pmm_alloc();
         if (pdt_phys_addr == PMM_ALLOC_ERROR) {
             goto failed_pdt_alloc;
         }
@@ -174,15 +169,14 @@ static uint64_t vmm_alloc_paging_structs(uint64_t addr) {
         };
 
         // Zero initialize the table so that present bits are 0
-        memset((uint8_t *)ALIGN_DOWN((uint64_t)get_pde(addr), PAGE_SIZE), 0,
-               PAGE_SIZE);
+        memset((u8 *)ALIGN_DOWN((u64)get_pde(addr), PAGE_SIZE), 0, PAGE_SIZE);
     }
 
     struct pde *pde = get_pde(addr);
     if (!pde->present) {
         log(LOG_LEVEL_DEBUG, "VMM: pde not present\n");
 
-        uint64_t pt_phys_addr = pmm_alloc();
+        u64 pt_phys_addr = pmm_alloc();
         if (pt_phys_addr == PMM_ALLOC_ERROR) {
             goto failed_pt_alloc;
         }
@@ -196,8 +190,7 @@ static uint64_t vmm_alloc_paging_structs(uint64_t addr) {
         };
 
         // Zero initialize the table so that present bits are 0
-        memset((uint8_t *)ALIGN_DOWN((uint64_t)get_pte(addr), PAGE_SIZE), 0,
-               PAGE_SIZE);
+        memset((u8 *)ALIGN_DOWN((u64)get_pte(addr), PAGE_SIZE), 0, PAGE_SIZE);
     }
 
     return 0;

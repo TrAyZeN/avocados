@@ -25,9 +25,9 @@
 
 #define MAGIC_BREAKPOINT __asm__ volatile("xchgw %bx, %bx")
 
-uint8_t kernel_stack[KERNEL_STACK_SIZE] __align(16);
+u8 kernel_stack[KERNEL_STACK_SIZE] __align(16);
 
-noreturn void kmain(multiboot_uint32_t magic, uint64_t multiboot_info_addr) {
+noreturn void kmain(multiboot_uint32_t magic, u64 multiboot_info_addr) {
     serial_init(SERIAL_PORT_COM1, SERIAL_BAUDRATE_38400);
 
     run_tests();
@@ -37,7 +37,7 @@ noreturn void kmain(multiboot_uint32_t magic, uint64_t multiboot_info_addr) {
     }
     // We created a single mapping for multiboot_info_addr assuming it is on a
     // single page frame
-    kassert(*(uint32_t *)multiboot_info_addr <= 4096);
+    kassert(*(u32 *)multiboot_info_addr <= 4096);
     kassert(multiboot_info_addr % 4096 == 0);
 
     const struct multiboot_tag *tag = multiboot_find_tag(
@@ -82,14 +82,14 @@ noreturn void kmain(multiboot_uint32_t magic, uint64_t multiboot_info_addr) {
 
     kassert(fb_init() == 0);
 
-    uint64_t res = acpi_map_region();
+    u64 res = acpi_map_region();
     kassert(res != VMM_ALLOC_ERROR);
 
     const struct madt *madt = (void *)acpi_rsdt_find_table("APIC");
     kassert(madt != NULL);
     acpi_print_madt(madt);
 
-    uint32_t ioapic_phys_addr = acpi_madt_find_ioapic_addr(madt);
+    u32 ioapic_phys_addr = acpi_madt_find_ioapic_addr(madt);
     kassert(ioapic_phys_addr != 0xffffffff);
     apic_init(madt->lapic_phys_addr, ioapic_phys_addr, (madt->flags & 1) == 1);
 
@@ -100,7 +100,7 @@ noreturn void kmain(multiboot_uint32_t magic, uint64_t multiboot_info_addr) {
 
     hpet_init(hpet->base_address.addr);
 
-    uint64_t mmap_addr = vmm_alloc(0xffffb33333333000UL, VMM_ALLOC_RW);
+    u64 mmap_addr = vmm_alloc(0xffffb33333333000UL, VMM_ALLOC_RW);
     kassert(mmap_addr != VMM_ALLOC_ERROR);
     kprintf("mmap_addr: %lx\n", mmap_addr);
     vmm_free(mmap_addr);

@@ -1,8 +1,8 @@
 #include <stddef.h>
-#include <stdint.h>
 
 #include "attributes.h"
 #include "kprintf.h"
+#include "types.h"
 
 // https://github.com/llvm/llvm-project/blob/release/16.x/clang/lib/CodeGen/CodeGenFunction.h#L113*/
 
@@ -17,13 +17,13 @@
 
 struct source_location {
     const char *filename;
-    uint32_t line;
-    uint32_t column;
+    u32 line;
+    u32 column;
 };
 
 struct type_descriptor {
-    uint16_t type_kind;
-    uint16_t type_info;
+    u16 type_kind;
+    u16 type_info;
     char type_name[1];
 };
 
@@ -99,20 +99,20 @@ void __ubsan_handle_type_mismatch_v1(const struct type_mismatch_data *data,
     kprintf("ubsan: type_mismatch_v1 in %s:%u:%u\n", data->loc.filename,
             data->loc.line, data->loc.column);
 
-    uint64_t alignment = 1UL << data->log_alignment;
+    u64 alignment = 1UL << data->log_alignment;
     if (ptr == NULL) {
         kprintf("%s null pointer of type %s\n",
                 type_check_kinds[data->type_check_kind], data->type->type_name);
-    } else if ((uint64_t)ptr & (alignment - 1)) {
+    } else if ((u64)ptr & (alignment - 1)) {
         kprintf(
             "%s misaligned address %lx for type %s, which requires %lu byte "
             "alignment\n",
-            type_check_kinds[data->type_check_kind], (uint64_t)ptr,
+            type_check_kinds[data->type_check_kind], (u64)ptr,
             data->type->type_name, alignment);
     } else {
         kprintf(
             "%s address %lx with insufficient space for an object of type %s\n",
-            type_check_kinds[data->type_check_kind], (uint64_t)ptr,
+            type_check_kinds[data->type_check_kind], (u64)ptr,
             data->type->type_name);
     }
 }

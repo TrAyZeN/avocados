@@ -1,9 +1,8 @@
 #ifndef AVOCADOS_VMM_H_
 #define AVOCADOS_VMM_H_
 
-#include <stdint.h>
-
 #include "attributes.h"
+#include "types.h"
 
 #define VMM_ALLOC_ERROR 0xffffffffffffffffUL
 
@@ -12,10 +11,10 @@
 #define VMM_ALLOC_USER (1 << 2)
 
 void vmm_init(void);
-uint64_t vmm_alloc(uint64_t addr, uint32_t flags) __warn_unused_result;
-void vmm_free(uint64_t addr);
+u64 vmm_alloc(u64 addr, u32 flags) __warn_unused_result;
+void vmm_free(u64 addr);
 
-uint64_t vmm_map_physical(uint64_t virt_addr, uint64_t phys_addr, uint64_t len,
-                          uint32_t flags) __warn_unused_result;
+u64 vmm_map_physical(u64 virt_addr, u64 phys_addr, u64 len,
+                     u32 flags) __warn_unused_result;
 
 #endif /* ! AVOCADOS_VMM_H_ */

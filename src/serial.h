@@ -3,10 +3,11 @@
 
 #include <stdbool.h>
 #include <stddef.h>
-#include <stdint.h>
+
+#include "types.h"
 
 // COM ports port IO addresses
-enum serial_port : uint16_t {
+enum serial_port : u16 {
     SERIAL_PORT_COM1 = 0x3f8,
     SERIAL_PORT_COM2 = 0x2f8,
     SERIAL_PORT_COM3 = 0x3e8,
@@ -33,7 +34,7 @@ void serial_init(enum serial_port port, enum serial_baudrate baudrate);
 
 bool serial_can_transmit(enum serial_port port);
 
-void serial_write_byte(enum serial_port port, uint8_t byte);
+void serial_write_byte(enum serial_port port, u8 byte);
 void serial_write(enum serial_port port, const char *buf, size_t count);
 void serial_puts(enum serial_port port, const char *str);
 

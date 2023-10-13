@@ -11,11 +11,11 @@
 
 // All 32-bit registers should be accessed using 128-bit aligned 32-bit
 // loads or stores. (See Vol. 3A 11.4.1)
-#define REG_LAPIC_ID ((volatile uint32_t *)(LAPIC_VIRT_ADDR + 0x20))
-#define REG_EOI ((volatile uint32_t *)(LAPIC_VIRT_ADDR + 0xb0))
-#define REG_SVR ((volatile uint32_t *)(LAPIC_VIRT_ADDR + 0xf0))
-#define REG_LVT_LINT0 ((volatile uint32_t *)(LAPIC_VIRT_ADDR + 0x350))
-#define REG_LVT_LINT1 ((volatile uint32_t *)(LAPIC_VIRT_ADDR + 0x360))
+#define REG_LAPIC_ID ((volatile u32 *)(LAPIC_VIRT_ADDR + 0x20))
+#define REG_EOI ((volatile u32 *)(LAPIC_VIRT_ADDR + 0xb0))
+#define REG_SVR ((volatile u32 *)(LAPIC_VIRT_ADDR + 0xf0))
+#define REG_LVT_LINT0 ((volatile u32 *)(LAPIC_VIRT_ADDR + 0x350))
+#define REG_LVT_LINT1 ((volatile u32 *)(LAPIC_VIRT_ADDR + 0x360))
 
 // Same between lapic and ioapic
 #define DELIVERY_MODE_FIXED 0b000
@@ -39,8 +39,8 @@
 #define SVR(VECTOR, SOFT_ENABLE_APIC)                                          \
     (((VECTOR)&0xff) | (((SOFT_ENABLE_APIC)&1) << 8))
 
-#define REG_IOREGSEL ((volatile uint32_t *)(IOAPIC_VIRT_ADDR + 0x00))
-#define REG_IOWIN ((volatile uint32_t *)(IOAPIC_VIRT_ADDR + 0x10))
+#define REG_IOREGSEL ((volatile u32 *)(IOAPIC_VIRT_ADDR + 0x00))
+#define REG_IOWIN ((volatile u32 *)(IOAPIC_VIRT_ADDR + 0x10))
 
 #define IOAPICID 0x00
 #define IOAPICVER 0x01
@@ -48,29 +48,26 @@
 #define IOREDTBL_HI(N) (0x11U + (N)*2)
 
 static void disable_dual_8259a_pic(void);
-static inline uint32_t ioapic_read_register(uint32_t offset);
-static void ioapic_set_io_redirection_table(uint8_t num, uint8_t vector,
-                                            uint8_t delivery_mode,
-                                            uint8_t destination_mode,
-                                            uint8_t polarity,
-                                            uint8_t trigger_mode, uint8_t mask,
-                                            uint8_t destination);
+static inline u32 ioapic_read_register(u32 offset);
+static void ioapic_set_io_redirection_table(u8 num, u8 vector, u8 delivery_mode,
+                                            u8 destination_mode, u8 polarity,
+                                            u8 trigger_mode, u8 mask,
+                                            u8 destination);
 
 // On error panic
-void apic_init(uint64_t lapic_phys_addr, uint64_t ioapic_phys_addr,
-               bool has_8259a) {
+void apic_init(u64 lapic_phys_addr, u64 ioapic_phys_addr, bool has_8259a) {
     // TODO: Figure out the following
     // For correct APIC operation, this address space must be mapped to an area
     // of memory that has been designated as strong uncacheable (UC)
     // See Vol. 3A 11.4.1
 
-    uint64_t ia32_apic_base = rdmsr(MSR_IA32_APIC_BASE);
+    u64 ia32_apic_base = rdmsr(MSR_IA32_APIC_BASE);
     if (!(ia32_apic_base & (1 << 11))) {
         kpanic("APIC is global disabled\n");
     }
     kassert((ia32_apic_base & 0xfffff000) == lapic_phys_addr);
 
-    uint64_t res = vmm_map_physical(LAPIC_VIRT_ADDR, lapic_phys_addr, 4096, 0);
+    u64 res = vmm_map_physical(LAPIC_VIRT_ADDR, lapic_phys_addr, 4096, 0);
     if (res == VMM_ALLOC_ERROR) {
         kpanic("Failed to map local APIC registers\n");
     }
@@ -98,13 +95,12 @@ void apic_init(uint64_t lapic_phys_addr, uint64_t ioapic_phys_addr,
     }
     log(LOG_LEVEL_DEBUG, "APIC: IO APIC mapped\n");
 
-    uint32_t ioapic_num_entries =
-        (ioapic_read_register(IOAPICVER) >> 16) & 0xff;
+    u32 ioapic_num_entries = (ioapic_read_register(IOAPICVER) >> 16) & 0xff;
     log(LOG_LEVEL_DEBUG, "APIC: number of IO APIC entries: %u\n",
         ioapic_num_entries);
 
     // Mask all interrupts
-    for (uint8_t i = 0; i < ioapic_num_entries; ++i) {
+    for (u8 i = 0; i < ioapic_num_entries; ++i) {
         ioapic_set_io_redirection_table(
             i, VECTOR_NUMBER_IOAPIC + i, DELIVERY_MODE_FIXED, 0,
             POLARITY_ACTIVE_HIGH, TRIGGER_MODE_EDGE, 0, 1);
@@ -138,44 +134,42 @@ static void disable_dual_8259a_pic(void) {
     outb(PORT_PIC_SLAVE_B, 0xff);
 }
 
-static inline uint32_t ioapic_read_register(uint32_t offset) {
+static inline u32 ioapic_read_register(u32 offset) {
     *REG_IOREGSEL = offset;
     return *REG_IOWIN;
 }
 
-void ioapic_unmask_interrupt(uint8_t interrupt) {
+void ioapic_unmask_interrupt(u8 interrupt) {
     ioapic_set_io_redirection_table(
         interrupt, VECTOR_NUMBER_IOAPIC + interrupt, DELIVERY_MODE_FIXED, 0,
         POLARITY_ACTIVE_HIGH, TRIGGER_MODE_EDGE, 0, 0);
 }
 
-static void ioapic_set_io_redirection_table(uint8_t num, uint8_t vector,
-                                            uint8_t delivery_mode,
-                                            uint8_t destination_mode,
-                                            uint8_t polarity,
-                                            uint8_t trigger_mode, uint8_t mask,
-                                            uint8_t destination) {
+static void ioapic_set_io_redirection_table(u8 num, u8 vector, u8 delivery_mode,
+                                            u8 destination_mode, u8 polarity,
+                                            u8 trigger_mode, u8 mask,
+                                            u8 destination) {
     *REG_IOREGSEL = IOREDTBL_LO(num);
     *REG_IOWIN = ((mask & 1U) << 16) | ((trigger_mode & 1U) << 15)
         | ((polarity & 1U) << 13) | ((destination_mode & 1U) << 11)
         | ((delivery_mode & 0b111U) << 8) | vector;
 
     *REG_IOREGSEL = IOREDTBL_HI(num);
-    *REG_IOWIN = (uint32_t)destination << (56 - 32);
+    *REG_IOWIN = (u32)destination << (56 - 32);
 }
 
 void apic_eoi(void) {
-    volatile uint32_t *isr = (volatile uint32_t *)(LAPIC_VIRT_ADDR + 0x100);
-    for (uint8_t i = 0; i < 8; ++i) {
+    volatile u32 *isr = (volatile u32 *)(LAPIC_VIRT_ADDR + 0x100);
+    for (u8 i = 0; i < 8; ++i) {
         if (*isr != 0) {
-            for (uint32_t j = 0; j < 32; ++j) {
+            for (u32 j = 0; j < 32; ++j) {
                 if (((*isr >> j) & 1) == 1) {
                     kprintf("isr: %u\n", i * 32 + j);
                     break;
                 }
             }
         }
-        isr = (volatile uint32_t *)((uint64_t)isr + 0x10);
+        isr = (volatile u32 *)((u64)isr + 0x10);
     }
 
     // Just need a write to EOI
