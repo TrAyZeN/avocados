@@ -13,7 +13,7 @@ void vmm_init(void) {
     extern u8 _sbss, _ebss;
 
     for (u64 addr = (u64)&_srodata; addr < (u64)&_erodata; addr += PAGE_SIZE) {
-        struct pte *pte = get_pte(addr);
+        pte_t *pte = get_pte(addr);
 
         pte->rw = 0;
         pte->xd = 1;
@@ -21,7 +21,7 @@ void vmm_init(void) {
 
     for (u64 addr = (u64)&_eh_frame_start; addr < (u64)&_eh_frame_end;
          addr += PAGE_SIZE) {
-        struct pte *pte = get_pte(addr);
+        pte_t *pte = get_pte(addr);
 
         pte->rw = 0;
         pte->xd = 1;
@@ -29,20 +29,20 @@ void vmm_init(void) {
 
     for (u64 addr = (u64)&_eh_frame_start; addr < (u64)&_eh_frame_end;
          addr += PAGE_SIZE) {
-        struct pte *pte = get_pte(addr);
+        pte_t *pte = get_pte(addr);
 
         pte->rw = 0;
         pte->xd = 1;
     }
 
     for (u64 addr = (u64)&_sdata; addr < (u64)&_edata; addr += PAGE_SIZE) {
-        struct pte *pte = get_pte(addr);
+        pte_t *pte = get_pte(addr);
 
         pte->xd = 1;
     }
 
     for (u64 addr = (u64)&_sbss; addr < (u64)&_ebss; addr += PAGE_SIZE) {
-        struct pte *pte = get_pte(addr);
+        pte_t *pte = get_pte(addr);
 
         pte->xd = 1;
     }
@@ -59,7 +59,7 @@ u64 vmm_alloc(u64 addr, u32 flags) {
         goto failed_paging_structs_alloc;
     }
 
-    struct pte *pte = get_pte(addr);
+    pte_t *pte = get_pte(addr);
     kassert(!pte->present);
 
     u64 page_phys_addr = pmm_alloc();
@@ -67,7 +67,7 @@ u64 vmm_alloc(u64 addr, u32 flags) {
         goto failed_page_alloc;
     }
 
-    *pte = (struct pte){
+    *pte = (pte_t){
         .present = 1,
         .rw = (flags & VMM_ALLOC_RW) ? 1U : 0U,
         .us = (flags & VMM_ALLOC_USER) ? 1U : 0U,
@@ -89,7 +89,7 @@ void vmm_free(u64 addr) {
     kassert(addr % PAGE_SIZE == 0);
     kassert(is_canonical(addr));
 
-    struct pte *pte = get_pte(addr);
+    pte_t *pte = get_pte(addr);
     pte->present = 0;
     pmm_free(pte->addr << 12);
 }
@@ -106,10 +106,10 @@ u64 vmm_map_physical(u64 virt_addr, u64 phys_addr, u64 len, u32 flags) {
             goto failed_paging_structs_alloc;
         }
 
-        struct pte *pte = get_pte(virt_addr + offset);
+        pte_t *pte = get_pte(virt_addr + offset);
         kassert(!pte->present);
 
-        *pte = (struct pte){
+        *pte = (pte_t){
             .present = 1,
             .rw = (flags & VMM_ALLOC_RW) ? 1U : 0U,
             .us = (flags & VMM_ALLOC_USER) ? 1U : 0U,
@@ -130,7 +130,7 @@ static u64 vmm_alloc_paging_structs(u64 addr) {
 
     // TODO: Handle case when pml4e not present but pdpte present
 
-    struct pml4e *pml4e = get_pml4e(addr);
+    pml4e_t *pml4e = get_pml4e(addr);
     if (!pml4e->present) {
         log(LOG_LEVEL_DEBUG, "VMM: pml4e not present\n");
 
@@ -139,7 +139,7 @@ static u64 vmm_alloc_paging_structs(u64 addr) {
             goto failed_pdpt_alloc;
         }
 
-        *pml4e = (struct pml4e){
+        *pml4e = (pml4e_t){
             .present = 1,
             .rw = 1,
             .us = 0,
@@ -151,7 +151,7 @@ static u64 vmm_alloc_paging_structs(u64 addr) {
         memset((u8 *)ALIGN_DOWN((u64)get_pdpte(addr), PAGE_SIZE), 0, PAGE_SIZE);
     }
 
-    struct pdpte *pdpte = get_pdpte(addr);
+    pdpte_t *pdpte = get_pdpte(addr);
     if (!pdpte->present) {
         log(LOG_LEVEL_DEBUG, "VMM: pdpte not present\n");
 
@@ -160,7 +160,7 @@ static u64 vmm_alloc_paging_structs(u64 addr) {
             goto failed_pdt_alloc;
         }
 
-        *pdpte = (struct pdpte){
+        *pdpte = (pdpte_t){
             .present = 1,
             .rw = 1,
             .us = 0,
@@ -172,7 +172,7 @@ static u64 vmm_alloc_paging_structs(u64 addr) {
         memset((u8 *)ALIGN_DOWN((u64)get_pde(addr), PAGE_SIZE), 0, PAGE_SIZE);
     }
 
-    struct pde *pde = get_pde(addr);
+    pde_t *pde = get_pde(addr);
     if (!pde->present) {
         log(LOG_LEVEL_DEBUG, "VMM: pde not present\n");
 
@@ -181,7 +181,7 @@ static u64 vmm_alloc_paging_structs(u64 addr) {
             goto failed_pt_alloc;
         }
 
-        *pde = (struct pde){
+        *pde = (pde_t){
             .present = 1,
             .rw = 1,
             .us = 0,

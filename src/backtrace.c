@@ -7,7 +7,7 @@ extern u8 _eh_frame_start;
 #define DWARF_CIE_AUG_SIZE (1 << 0)
 #define DWARF_CIE_AUG_CODE_ENC (1 << 1)
 
-struct dwarf_cie {
+typedef struct {
     u32 length;
     u32 id;
     u8 version;
@@ -16,12 +16,12 @@ struct dwarf_cie {
     i64 data_alignment_factor;
     u64 return_address_register;
     const u8 *instructions;
-};
+} dwarf_cie_t;
 
-struct dwarf_fde {
+typedef struct {
     u32 length;
-    const struct dwarf_cie *cie;
-};
+    const dwarf_cie_t *cie;
+} dwarf_fde_t;
 
 static u64 decode_uleb128(const u8 *buf, u64 *result) {
     *result = 0;
@@ -73,7 +73,7 @@ static u64 decode_sleb128(const u8 *buf, i64 *result) {
     return i;
 }
 
-static u64 dwarf_parse_cie(const u8 *buf, struct dwarf_cie *cie) {
+static u64 dwarf_parse_cie(const u8 *buf, dwarf_cie_t *cie) {
     cie->length = *(u32 *)buf;
     cie->id = *(u32 *)(buf + 4);
     kassert(cie->id == 0);
@@ -110,7 +110,7 @@ static u64 dwarf_parse_cie(const u8 *buf, struct dwarf_cie *cie) {
     return cie->length + 4;
 }
 
-static void dwarf_print_cie(const struct dwarf_cie *cie) {
+static void dwarf_print_cie(const dwarf_cie_t *cie) {
     kprintf("CIE:\n");
     kprintf("  Length: %u\n", cie->length);
     kprintf("  Id: %u\n", cie->id);
@@ -121,8 +121,8 @@ static void dwarf_print_cie(const struct dwarf_cie *cie) {
     kprintf("  Return address register: %lu\n", cie->return_address_register);
 }
 
-static u64 dwarf_parse_fde(const u8 *buf, struct dwarf_fde *fde,
-                           const struct dwarf_cie *cie) {
+static u64 dwarf_parse_fde(const u8 *buf, dwarf_fde_t *fde,
+                           const dwarf_cie_t *cie) {
     fde->length = *(u32 *)buf;
     // We make the assumption that there is only one CIE
     fde->cie = cie;
@@ -135,7 +135,7 @@ static u64 dwarf_parse_fde(const u8 *buf, struct dwarf_fde *fde,
     return fde->length + 4;
 }
 
-static void dwarf_print_fde(const struct dwarf_fde *fde) {
+static void dwarf_print_fde(const dwarf_fde_t *fde) {
     kprintf("FDE:\n");
     kprintf("  Length: %u\n", fde->length);
 }
@@ -150,8 +150,8 @@ void backtrace(void) {
     /* } */
     /* puts("\n"); */
 
-    struct dwarf_cie cie;
-    struct dwarf_fde fde;
+    dwarf_cie_t cie;
+    dwarf_fde_t fde;
 
     const u8 *eh_frame = &_eh_frame_start;
 

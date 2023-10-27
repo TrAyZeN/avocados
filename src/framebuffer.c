@@ -10,7 +10,15 @@
 
 #define FG_WHITE (15 << 8)
 
-static struct framebuffer framebuffer;
+typedef struct {
+    volatile u16 *buf;
+    u32 width;
+    u32 height;
+    u32 x;
+    u32 y;
+} framebuffer_t;
+
+static framebuffer_t framebuffer;
 static u64 framebuffer_phys_addr;
 static u32 framebuffer_width, framebuffer_height;
 

@@ -15,7 +15,7 @@ extern pml4_t pml4;
 
 // TODO: Add free stack for fast alloc and free
 
-struct memory_map {
+typedef struct memory_map {
     struct memory_map *next;
     // Base physical address of the memory region
     u64 base_addr;
@@ -26,16 +26,16 @@ struct memory_map {
     // A bitmap representing page frame availability. Each bit corresponds to a
     // page frame with 0 = free and 1 = allocated.
     u64 bitmap[];
-};
+} memory_map_t;
 
-#define BITMAP_CELL_BITS (sizeof(((struct memory_map *)0)->bitmap[0]) * 8)
+#define BITMAP_CELL_BITS (sizeof(((memory_map_t *)0)->bitmap[0]) * 8)
 
-static void memory_map_reserve(struct memory_map *memory_map, u64 base,
+static void memory_map_reserve(memory_map_t *memory_map, u64 base,
                                u64 num_frames);
-static void memory_map_reserve_range(struct memory_map *memory_map, u64 base,
+static void memory_map_reserve_range(memory_map_t *memory_map, u64 base,
                                      u64 end);
 
-static struct memory_map *memory_map = NULL;
+static memory_map_t *memory_map = NULL;
 
 #define MAX_MMAP_ENTRIES 20
 // Let's map memory map at 0x0000 0000 1000 0000
@@ -78,12 +78,12 @@ void pmm_init(const struct multiboot_tag_mmap *mmap_tag) {
     u8 first = 1;
     // WARN: Must be a multiple of PAGE_SIZE
     u64 memory_map_virt_addr = MEMORY_MAP_ADDR;
-    struct memory_map *prev_memory_map = NULL;
-    struct memory_map *curr_memory_map = NULL;
+    memory_map_t *prev_memory_map = NULL;
+    memory_map_t *curr_memory_map = NULL;
     for (u64 i = 0; i < num_available_mmap_entries; i++) {
         // TODO: Function
-        // Compute struct memory_map size with flexible array member
-        u64 memory_map_size = sizeof(struct memory_map)
+        // Compute memory_map_t size with flexible array member
+        u64 memory_map_size = sizeof(memory_map_t)
             + ALIGN_UP(available_mmap_entries[i].len,
                        PAGE_SIZE * BITMAP_CELL_BITS)
                 / (PAGE_SIZE * 8);
@@ -99,27 +99,27 @@ void pmm_init(const struct multiboot_tag_mmap *mmap_tag) {
             ALIGN_UP(available_mmap_entries[i].addr + offset, PAGE_SIZE);
 
         // Setup paging structures for memory map
-        struct pml4e *pml4e = get_pml4e(memory_map_virt_addr);
+        pml4e_t *pml4e = get_pml4e(memory_map_virt_addr);
         if (!pml4e->present) {
             // TODO: Map
             kpanic("Not implemented: pml4e not present\n");
         }
 
-        struct pdpte *pdpte = get_pdpte(memory_map_virt_addr);
+        pdpte_t *pdpte = get_pdpte(memory_map_virt_addr);
         if (!pdpte->present) {
             // TODO: Map
             kpanic("Not implemented: pdpte not present\n");
         }
 
         u64 res = 0;
-        struct pde *pde = get_pde(memory_map_virt_addr);
+        pde_t *pde = get_pde(memory_map_virt_addr);
         if (!pde->present) {
             // TODO: Remove res
             // Store the page table after the memory map
             u64 phys_addr =
                 ALIGN_UP(memory_map_phys_addr + memory_map_size, PAGE_SIZE)
                 + res * PAGE_SIZE;
-            *pde = (struct pde){
+            *pde = (pde_t){
                 .present = 1,
                 .rw = 1,
                 .us = 0,
@@ -141,11 +141,11 @@ void pmm_init(const struct multiboot_tag_mmap *mmap_tag) {
 
         for (u64 k = 0; k < ALIGN_UP(memory_map_size, PAGE_SIZE);
              k += PAGE_SIZE) {
-            struct pte *pte = get_pte(memory_map_virt_addr + k);
+            pte_t *pte = get_pte(memory_map_virt_addr + k);
 
             kassert(!pte->present);
             u64 phys_addr = memory_map_phys_addr + k;
-            *pte = (struct pte){
+            *pte = (pte_t){
                 .present = 1,
                 .rw = 1,
                 .us = 0,
@@ -154,7 +154,7 @@ void pmm_init(const struct multiboot_tag_mmap *mmap_tag) {
             };
         }
 
-        curr_memory_map = (struct memory_map *)memory_map_virt_addr;
+        curr_memory_map = (memory_map_t *)memory_map_virt_addr;
         curr_memory_map->next = NULL;
         curr_memory_map->base_addr = available_mmap_entries[i].addr;
         curr_memory_map->len =
@@ -212,7 +212,7 @@ void pmm_init(const struct multiboot_tag_mmap *mmap_tag) {
 }
 
 // base is a physical address
-static void memory_map_reserve(struct memory_map *m, u64 base, u64 num_frames) {
+static void memory_map_reserve(memory_map_t *m, u64 base, u64 num_frames) {
     // Check alignment
     kassert(base % PAGE_SIZE == 0);
     // Check range
@@ -227,7 +227,7 @@ static void memory_map_reserve(struct memory_map *m, u64 base, u64 num_frames) {
 }
 
 // end excluded
-static void memory_map_reserve_range(struct memory_map *m, u64 base, u64 end) {
+static void memory_map_reserve_range(memory_map_t *m, u64 base, u64 end) {
     // Check alignment
     kassert(end % PAGE_SIZE == 0);
     // Check range
@@ -241,7 +241,7 @@ static void memory_map_reserve_range(struct memory_map *m, u64 base, u64 end) {
 u64 pmm_alloc(void) {
     u64 phys_addr = PMM_ALLOC_ERROR;
 
-    for (struct memory_map *m = memory_map; m != NULL; m = m->next) {
+    for (memory_map_t *m = memory_map; m != NULL; m = m->next) {
         for (u64 i = 0; i < m->size; i++) {
             if (m->bitmap[i] != 0xffffffffffffffff) {
                 // Find first bit
@@ -267,7 +267,7 @@ u64 pmm_alloc(void) {
 void pmm_free(u64 addr) {
     kassert(addr % PAGE_SIZE == 0);
 
-    for (struct memory_map *m = memory_map; m != NULL; m = m->next) {
+    for (memory_map_t *m = memory_map; m != NULL; m = m->next) {
         if (addr >= m->base_addr && addr < m->base_addr + m->len) {
             u64 frame_idx = (addr - m->base_addr) / PAGE_SIZE;
             m->bitmap[frame_idx / BITMAP_CELL_BITS] &=

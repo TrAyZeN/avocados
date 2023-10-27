@@ -62,7 +62,7 @@
  *   32-bit protected mode segment.
  * - gran: If set the granularity of the limit is 4096B else 1B.
  */
-struct segment_descriptor {
+typedef struct {
     u32 limit_lo : 16;
     u32 base_lo : 24;
     u32 type : 4;
@@ -75,8 +75,8 @@ struct segment_descriptor {
     u32 db : 1;
     u32 gran : 1;
     u32 base_hi : 8;
-} __packed;
-_Static_assert(sizeof(struct segment_descriptor) == 8,
+} __packed segment_descriptor_t;
+_Static_assert(sizeof(segment_descriptor_t) == 8,
                "Invalid segment descriptor size");
 
 #define GDT_NULL_DESCRIPTOR                                                    \
@@ -91,7 +91,7 @@ _Static_assert(sizeof(struct segment_descriptor) == 8,
     }
 
 // Vol. 3A 8.2.3
-struct tss_descriptor {
+typedef struct {
     u32 limit_lo : 16;
     u32 base_lo : 24;
     u32 type : 4;
@@ -104,9 +104,8 @@ struct tss_descriptor {
     u32 base_mid : 8;
     u32 base_hi;
     u32 : 32;
-} __packed;
-_Static_assert(sizeof(struct tss_descriptor) == 16,
-               "Invalid TSS descriptor size");
+} __packed tss_descriptor_t;
+_Static_assert(sizeof(tss_descriptor_t) == 16, "Invalid TSS descriptor size");
 
 #define TSS_DESCRIPTOR(BASE, LIMIT)                                            \
     {                                                                          \
@@ -123,7 +122,7 @@ _Static_assert(sizeof(struct tss_descriptor) == 16,
 // - Pointer addresses for the interrupt stack table
 // - Offset address of the IO-permission bitmap
 // Vol. 3A 2.1.3.1
-struct tss {
+typedef struct {
     u32 : 32;
     u32 rsp0_lo;
     u32 rsp0_hi;
@@ -151,7 +150,7 @@ struct tss {
     u32 : 32;
     u16 : 16;
     u16 io_map_base;
-} __packed;
+} __packed tss_t;
 
 void load_tss(void);
 

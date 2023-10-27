@@ -19,10 +19,10 @@
 
 // Descriptor stored in GDTR, IDTR and LTDR.
 // See Vol. 3A 3.5.1
-struct pseudo_descriptor64 {
+typedef struct {
     u16 size;
     u64 offset;
-} __packed;
+} __packed pseudo_descriptor64_t;
 
 void memset(u8 *mem, u8 value, u64 n);
 int strncmp(const char *s1, const char *s2, u64 n);

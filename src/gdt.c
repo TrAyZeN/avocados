@@ -7,7 +7,7 @@
 #include "types.h"
 #include "utils.h"
 
-struct segment_descriptor gdt[GDT_NUM_ENTRIES] __align(GDT_ALIGN) = {
+segment_descriptor_t gdt[GDT_NUM_ENTRIES] __align(GDT_ALIGN) = {
     [0] = GDT_NULL_DESCRIPTOR,
 
     [GDT_IDX_CODE] = GDT_SEG_DESCRIPTOR(0, 0xfffff, SEG_TYPE_RE, SEG_DPL_RING_0,
@@ -21,12 +21,11 @@ struct segment_descriptor gdt[GDT_NUM_ENTRIES] __align(GDT_ALIGN) = {
     [GDT_IDX_TSS_HI] = GDT_NULL_DESCRIPTOR,
 };
 
-static struct tss tss = { 0 };
+static tss_t tss = { 0 };
 
 void load_tss(void) {
-    struct tss_descriptor *tss_descriptor = (void *)&gdt[GDT_IDX_TSS];
-    *tss_descriptor =
-        (struct tss_descriptor)TSS_DESCRIPTOR((u64)&tss, sizeof(tss));
+    tss_descriptor_t *tss_descriptor = (void *)&gdt[GDT_IDX_TSS];
+    *tss_descriptor = (tss_descriptor_t)TSS_DESCRIPTOR((u64)&tss, sizeof(tss));
 
     u16 segment_selector =
         SEGMENT_SELECTOR(GDT_IDX_TSS, SEGMENT_SELECTOR_GDT, 0);

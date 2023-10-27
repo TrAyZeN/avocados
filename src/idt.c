@@ -17,7 +17,7 @@
  * - type:
  * - dpl:
  */
-struct gate_descriptor {
+typedef struct {
     u16 offset_lo;
     u16 segment;
     u16 ist : 3;
@@ -29,13 +29,13 @@ struct gate_descriptor {
     u16 offset_mid;
     u32 offset_hi;
     u32 reserved;
-} __packed;
+} __packed gate_descriptor_t;
 
 #define GATE_TYPE_INT 0b1110
 #define GATE_TYPE_TRAP 0b1111
 
 #define GATE_DESCRIPTOR(OFFSET, TYPE)                                          \
-    (struct gate_descriptor) {                                                 \
+    (gate_descriptor_t) {                                                      \
         .offset_lo = (OFFSET)&0xffff,                                          \
         .segment = SEGMENT_SELECTOR(GDT_IDX_CODE, SEGMENT_SELECTOR_GDT, 0),    \
         .ist = 0, .type = TYPE, .dpl = 0, .present = 1,                        \
@@ -43,7 +43,7 @@ struct gate_descriptor {
         .offset_hi = (u32)((OFFSET) >> 32) & 0xffffffff,                       \
     }
 
-static struct gate_descriptor idt[256] __align(IDT_ALIGN) = { 0 };
+static gate_descriptor_t idt[256] __align(IDT_ALIGN) = { 0 };
 
 void load_idt(void) {
     idt[0] = GATE_DESCRIPTOR((u64)isr_0, GATE_TYPE_INT);
@@ -98,7 +98,7 @@ void load_idt(void) {
     idt[62] = GATE_DESCRIPTOR((u64)isr_62, GATE_TYPE_INT);
     idt[63] = GATE_DESCRIPTOR((u64)isr_63, GATE_TYPE_INT);
 
-    struct pseudo_descriptor64 idt_descriptor = {
+    pseudo_descriptor64_t idt_descriptor = {
         .size = sizeof(idt) - 1,
         .offset = (u64)idt,
     };

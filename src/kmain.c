@@ -85,7 +85,7 @@ noreturn void kmain(multiboot_uint32_t magic, u64 multiboot_info_addr) {
     u64 res = acpi_map_region();
     kassert(res != VMM_ALLOC_ERROR);
 
-    const struct madt *madt = (void *)acpi_rsdt_find_table("APIC");
+    const madt_t *madt = (void *)acpi_rsdt_find_table("APIC");
     kassert(madt != NULL);
     acpi_print_madt(madt);
 
@@ -93,8 +93,7 @@ noreturn void kmain(multiboot_uint32_t magic, u64 multiboot_info_addr) {
     kassert(ioapic_phys_addr != 0xffffffff);
     apic_init(madt->lapic_phys_addr, ioapic_phys_addr, (madt->flags & 1) == 1);
 
-    const struct hpet_description_table *hpet =
-        (void *)acpi_rsdt_find_table("HPET");
+    const hpet_description_table_t *hpet = (void *)acpi_rsdt_find_table("HPET");
     kassert(hpet != NULL);
     acpi_print_hpet_description_table(hpet);
 

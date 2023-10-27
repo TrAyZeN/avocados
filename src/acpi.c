@@ -7,7 +7,7 @@
 #include "utils.h"
 #include "vmm.h"
 
-struct rsdp g_rsdp;
+rsdp_t g_rsdp;
 u64 acpi_region_addr;
 u64 acpi_region_len;
 
@@ -19,7 +19,7 @@ void acpi_prepare(const struct multiboot_tag_old_acpi *old_acpi_tag,
 
     // Copy RSDP to kernel range because RSDP is outside kernel range and it is
     // considered invalid after pmm_init.
-    g_rsdp = *(const struct rsdp *)old_acpi_tag->rsdp;
+    g_rsdp = *(const rsdp_t *)old_acpi_tag->rsdp;
     kassert(acpi_rsdp_is_valid_checksum(&g_rsdp));
     // Assert that we have an old ACPI RSDP
     kassert(g_rsdp.revision == 0);
@@ -51,13 +51,12 @@ u64 acpi_map_region(void) {
 }
 
 // Returns NULL if not found
-const struct description_header *acpi_rsdt_find_table(char signature[4]) {
-    const struct rsdt *rsdt = (void *)ACPI_PHYS_TO_VIRT(g_rsdp.rsdt_phys_addr);
+const description_header_t *acpi_rsdt_find_table(char signature[4]) {
+    const rsdt_t *rsdt = (void *)ACPI_PHYS_TO_VIRT(g_rsdp.rsdt_phys_addr);
 
-    const struct description_header *description_header = NULL;
+    const description_header_t *description_header = NULL;
     for (u64 i = 0;
-         i * sizeof(u32) + offsetof(struct rsdt, entry) < rsdt->header.length;
-         ++i) {
+         i * sizeof(u32) + offsetof(rsdt_t, entry) < rsdt->header.length; ++i) {
         kassert(rsdt->entry[i] > acpi_region_addr
                 && rsdt->entry[i] < acpi_region_addr + acpi_region_len);
 
@@ -74,12 +73,11 @@ const struct description_header *acpi_rsdt_find_table(char signature[4]) {
 }
 
 // Returns 0xffffffff if no IO APIC structure is found
-u32 acpi_madt_find_ioapic_addr(const struct madt *madt) {
-    const struct madt_int_controller *int_controller = &madt->int_controllers;
+u32 acpi_madt_find_ioapic_addr(const madt_t *madt) {
+    const madt_int_controller_t *int_controller = &madt->int_controllers;
     while ((u64)int_controller - (u64)madt < madt->header.length) {
         if (int_controller->type == MADT_INT_CONTROLLER_IOAPIC) {
-            const struct madt_int_controller_ioapic *ic =
-                (void *)int_controller;
+            const madt_int_controller_ioapic_t *ic = (void *)int_controller;
             return ic->ioapic_phys_addr;
         }
 
@@ -92,16 +90,16 @@ u32 acpi_madt_find_ioapic_addr(const struct madt *madt) {
     return 0xffffffff;
 }
 
-bool acpi_rsdp_is_valid_checksum(const struct rsdp *rsdp) {
+bool acpi_rsdp_is_valid_checksum(const rsdp_t *rsdp) {
     u8 sum = 0;
-    for (u32 i = 0; i < sizeof(struct rsdp); ++i) {
+    for (u32 i = 0; i < sizeof(rsdp_t); ++i) {
         sum += ((const u8 *)rsdp)[i];
     }
 
     return sum == 0;
 }
 
-bool acpi_table_is_valid_checksum(const struct description_header *header) {
+bool acpi_table_is_valid_checksum(const description_header_t *header) {
     u8 sum = 0;
     for (u32 i = 0; i < header->length; ++i) {
         sum += ((const u8 *)header)[i];
@@ -110,7 +108,7 @@ bool acpi_table_is_valid_checksum(const struct description_header *header) {
     return sum == 0;
 }
 
-void acpi_print_rsdp(const struct rsdp *rsdp) {
+void acpi_print_rsdp(const rsdp_t *rsdp) {
     puts("RSDP:\n");
 
     kprintf("  Signature: %c%c%c%c%c%c%c%c\n", rsdp->signature[0],
@@ -124,8 +122,7 @@ void acpi_print_rsdp(const struct rsdp *rsdp) {
     kprintf("  RSDT physical address: 0x%08x\n", rsdp->rsdt_phys_addr);
 }
 
-static void
-acpi_print_description_header(const struct description_header *header) {
+static void acpi_print_description_header(const description_header_t *header) {
     kprintf("  Signature: %c%c%c%c\n", header->signature[0],
             header->signature[1], header->signature[2], header->signature[3]);
     kprintf("  Length: %u\n", header->length);
@@ -144,26 +141,25 @@ acpi_print_description_header(const struct description_header *header) {
     kprintf("  Creator Revision: 0x%08x\n", header->creator_revision);
 }
 
-void acpi_print_madt(const struct madt *madt) {
+void acpi_print_madt(const madt_t *madt) {
     puts("MADT:\n");
     acpi_print_description_header(&madt->header);
     kprintf("  Local interrupt controller address: 0x%08x\n",
             madt->lapic_phys_addr);
     kprintf("  Flags: 0x%08x\n", madt->flags);
 
-    const struct madt_int_controller *int_controller = &madt->int_controllers;
+    const madt_int_controller_t *int_controller = &madt->int_controllers;
     while ((u64)int_controller - (u64)madt < madt->header.length) {
         kprintf("  Interrupt controller type: 0x%02x\n", int_controller->type);
 
         if (int_controller->type == MADT_INT_CONTROLLER_LAPIC) {
-            const struct madt_int_controller_lapic *ic = (void *)int_controller;
+            const madt_int_controller_lapic_t *ic = (void *)int_controller;
             kprintf("    Length: %u\n", ic->length);
             kprintf("    ACPI Processor UID: %u\n", ic->acpi_processor_id);
             kprintf("    APIC ID: %u\n", ic->apic_id);
             kprintf("    Flags: %u\n", ic->flags);
         } else if (int_controller->type == MADT_INT_CONTROLLER_IOAPIC) {
-            const struct madt_int_controller_ioapic *ic =
-                (void *)int_controller;
+            const madt_int_controller_ioapic_t *ic = (void *)int_controller;
             kprintf("    Length: %u\n", ic->length);
             kprintf("    IO APIC ID: %u\n", ic->ioapic_id);
             kprintf("    IO APIC Address: 0x%08x\n", ic->ioapic_phys_addr);
@@ -171,7 +167,7 @@ void acpi_print_madt(const struct madt *madt) {
                     ic->system_vector_base);
         } else if (int_controller->type
                    == MADT_INT_CONTROLLER_INT_SRC_OVERRIDE) {
-            const struct madt_int_controller_int_src_override *ic =
+            const madt_int_controller_int_src_override_t *ic =
                 (void *)int_controller;
             kprintf("    Length: %u\n", ic->length);
             kprintf("    Bus: %u\n", ic->bus);
@@ -180,8 +176,7 @@ void acpi_print_madt(const struct madt *madt) {
                     ic->global_system_interrupt);
             kprintf("    Flags: %u\n", ic->flags);
         } else if (int_controller->type == MADT_INT_CONTROLLER_LAPIC_NMI) {
-            const struct madt_int_controller_lapic_nmi *ic =
-                (void *)int_controller;
+            const madt_int_controller_lapic_nmi_t *ic = (void *)int_controller;
             kprintf("    Length: %u\n", ic->length);
             kprintf("    ACPI Processor UID: %u\n", ic->acpi_processor_id);
             kprintf("    Flags: %u\n", ic->flags);
@@ -195,8 +190,7 @@ void acpi_print_madt(const struct madt *madt) {
     }
 }
 
-void acpi_print_hpet_description_table(
-    const struct hpet_description_table *hpet) {
+void acpi_print_hpet_description_table(const hpet_description_table_t *hpet) {
     puts("HPET:\n");
 
     kprintf("  Event timer block id: 0x%08x\n", hpet->event_timer_block_id);

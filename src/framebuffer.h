@@ -6,14 +6,6 @@
 
 // WARN: Only handles text mode
 
-struct framebuffer {
-    volatile u16 *buf;
-    u32 width;
-    u32 height;
-    u32 x;
-    u32 y;
-};
-
 void fb_prepare(const struct multiboot_tag_framebuffer *framebuffer_tag);
 u64 fb_init(void);
 
