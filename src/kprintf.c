@@ -1,7 +1,8 @@
+#include "kprintf.h"
+
 #include <stdbool.h>
 
 #include "kassert.h"
-#include "kprintf.h"
 #include "serial.h"
 #include "types.h"
 #include "utils.h"
@@ -119,13 +120,26 @@ void kvprintf(const char *fmt, va_list ap) {
                 // Value promotable to int are promoted to int
                 case LM_HH:
                 case LM_H:
-                    arg = (unsigned long long)va_arg(ap, int);
+                    if (fmt[i] == 'd' || fmt[i] == 'i') {
+                        arg = (unsigned long long)va_arg(ap, int);
+                    } else {
+                        arg = (unsigned long long)va_arg(ap, unsigned int);
+                    }
                     break;
                 case LM_L:
-                    arg = (unsigned long long)va_arg(ap, long);
+                    if (fmt[i] == 'd' || fmt[i] == 'i') {
+                        arg = (unsigned long long)va_arg(ap, long);
+                    } else {
+                        arg = (unsigned long long)va_arg(ap, unsigned long);
+                    }
                     break;
                 case LM_LL:
-                    arg = (unsigned long long)va_arg(ap, long long);
+                    if (fmt[i] == 'd' || fmt[i] == 'i') {
+                        arg = (unsigned long long)va_arg(ap, long long);
+                    } else {
+                        arg =
+                            (unsigned long long)va_arg(ap, unsigned long long);
+                    }
                     break;
                 }
 
