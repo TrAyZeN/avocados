@@ -17,6 +17,7 @@
 #include "multiboot2.h"
 #include "multiboot_utils.h"
 #include "panic.h"
+#include "pci.h"
 #include "pmm.h"
 #include "serial.h"
 #include "test.h"
@@ -35,7 +36,7 @@ noreturn void kmain(multiboot_uint32_t magic, u64 multiboot_info_addr) {
     if (magic != MULTIBOOT2_BOOTLOADER_MAGIC) {
         kpanic("Invalid multiboot2 magic: 0x%08x\n", magic);
     }
-    // We created a single mapping for multiboot_info_addr assuming it is on a
+    // A single mapping for multiboot_info_addr is created assuming it fits on a
     // single page frame
     kassert(*(u32 *)multiboot_info_addr <= 4096);
     kassert(multiboot_info_addr % 4096 == 0);
@@ -104,7 +105,9 @@ noreturn void kmain(multiboot_uint32_t magic, u64 multiboot_info_addr) {
     kprintf("mmap_addr: %lx\n", mmap_addr);
     vmm_free(mmap_addr);
 
-    backtrace();
+    /* backtrace(); */
+
+    pci_list();
 
     MAGIC_BREAKPOINT;
 
@@ -112,6 +115,10 @@ noreturn void kmain(multiboot_uint32_t magic, u64 multiboot_info_addr) {
     __asm__ volatile("int $0\n");
 
     /* sti(); */
+
+    // TODO: Set iopl
+
+    // TODO: kmalloc
 
     // TODO: Add documentation
     // TODO: Higher half kernel
@@ -122,8 +129,8 @@ noreturn void kmain(multiboot_uint32_t magic, u64 multiboot_info_addr) {
     // https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=c6d308534aef6c99904bf5862066360ae067abc4
 
     /* end: */
-    kpanic("End of kmain reached\n");
 
+    puts("End of kmain reached\n");
     cli();
     while (1) {
         hlt();

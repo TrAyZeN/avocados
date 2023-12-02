@@ -50,7 +50,8 @@ C_SRCS := \
 	 src/acpi.c \
 	 src/utils.c \
 	 src/apic.c \
-	 src/hpet.c
+	 src/hpet.c \
+	 src/pci.c
 S_SRCS := src/boot.S
 OBJS := $(C_SRCS:%.c=$(OBJS_DIR)/%.o) $(S_SRCS:%.S=$(OBJS_DIR)/%.o)
 DEPS := $(OBJS:%.o=%.d)
@@ -64,8 +65,17 @@ DIRS += $(BUILD_DIR)/iso/boot/grub/
 all: $(ISO)
 
 run r: $(ISO)
-	# qemu-system-x86_64 -cdrom $< -serial stdio -m 1024M
-	qemu-system-x86_64 -cdrom $< -m 1024M -nographic -serial mon:stdio
+	qemu-img create -f qcow2 disk.img 2G
+	qemu-system-x86_64 \
+		-m 1024M \
+		-smp cores=2,threads=2 \
+		-cdrom $< \
+		-drive id=disk,file=disk.img,if=none \
+		-device ahci,id=ahci \
+		-device ide-hd,drive=disk,bus=ahci.0 \
+		-serial stdio
+	# qemu-system-x86_64 -m 1024M -smp cores=2,threads=2 -cdrom $< \
+		# -hda drive.img -nographic -serial mon:stdio
 
 run_bochs rb: $(ISO)
 	bochs -q -rc .bochs_commands

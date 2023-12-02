@@ -43,6 +43,18 @@ static inline u16 inw(u16 port) {
     return res;
 }
 
+static inline void outd(u16 port, u32 val) {
+    __asm__ volatile("out %0, %1" : /* No output */ : "a"(val), "d"(port));
+}
+
+static inline u32 ind(u16 port) {
+    u32 res;
+
+    __asm__ volatile("in %1, %0" : "=&a"(res) : "d"(port));
+
+    return res;
+}
+
 static inline u64 rdmsr(u32 msr) {
     u32 res_lo, res_hi;
 
