@@ -1,9 +1,9 @@
 #include <stddef.h>
 
-#include "kassert.h"
-#include "kprintf.h"
-#include "log.h"
-#include "paging.h"
+#include "arch/paging.h"
+#include "libk/kassert.h"
+#include "libk/kprintf.h"
+#include "libk/log.h"
 #include "pmm.h"
 #include "types.h"
 #include "utils.h"

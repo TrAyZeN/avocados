@@ -1,5 +1,4 @@
-
-#include "instr.h"
+#include "arch/instr.h"
 #include "serial.h"
 
 /*

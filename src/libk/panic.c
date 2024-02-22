@@ -1,6 +1,6 @@
 #include <stdarg.h>
 
-#include "instr.h"
+#include "arch/instr.h"
 #include "kprintf.h"
 #include "panic.h"
 

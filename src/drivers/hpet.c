@@ -1,10 +1,10 @@
 #include "apic.h"
 #include "hpet.h"
-#include "kassert.h"
-#include "kprintf.h"
-#include "panic.h"
+#include "libk/kassert.h"
+#include "libk/kprintf.h"
+#include "libk/panic.h"
+#include "mm/vmm.h"
 #include "utils.h"
-#include "vmm.h"
 
 #define HPET_VIRT_ADDR 0x0000001100002000UL
 

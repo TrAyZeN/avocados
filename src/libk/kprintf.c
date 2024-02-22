@@ -1,9 +1,8 @@
-#include "kprintf.h"
-
 #include <stdbool.h>
 
+#include "drivers/serial.h"
 #include "kassert.h"
-#include "serial.h"
+#include "kprintf.h"
 #include "types.h"
 #include "utils.h"
 

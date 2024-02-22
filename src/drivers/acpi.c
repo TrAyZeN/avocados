@@ -1,11 +1,11 @@
 #include <stddef.h>
 
 #include "acpi.h"
-#include "kassert.h"
-#include "kprintf.h"
-#include "log.h"
+#include "libk/kassert.h"
+#include "libk/kprintf.h"
+#include "libk/log.h"
+#include "mm/vmm.h"
 #include "utils.h"
-#include "vmm.h"
 
 rsdp_t g_rsdp;
 u64 acpi_region_addr;

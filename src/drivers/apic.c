@@ -1,10 +1,10 @@
 #include "apic.h"
-#include "instr.h"
-#include "kassert.h"
-#include "kprintf.h"
-#include "log.h"
-#include "regs.h"
-#include "vmm.h"
+#include "arch/instr.h"
+#include "arch/regs.h"
+#include "libk/kassert.h"
+#include "libk/kprintf.h"
+#include "libk/log.h"
+#include "mm/vmm.h"
 
 #define LAPIC_VIRT_ADDR 0x0000001100000000UL
 #define IOAPIC_VIRT_ADDR 0x0000001100001000UL

@@ -1,5 +1,5 @@
-#include "kassert.h"
-#include "kprintf.h"
+#include "libk/kassert.h"
+#include "libk/kprintf.h"
 #include "types.h"
 
 extern u8 _eh_frame_start;

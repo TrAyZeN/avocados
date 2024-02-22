@@ -13,8 +13,8 @@
 
 #define ASM_FILE
 #include "multiboot2.h"
-#include "regs.h"
-#include "gdt.h"
+#include "arch/regs.h"
+#include "arch/gdt.h"
 #include "utils.h"
 #include "avocados.h"
 

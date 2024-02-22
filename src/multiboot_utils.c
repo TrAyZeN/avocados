@@ -1,4 +1,4 @@
-#include "kprintf.h"
+#include "libk/kprintf.h"
 #include "multiboot_utils.h"
 #include "types.h"
 

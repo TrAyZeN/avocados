@@ -1,8 +1,8 @@
-#include "kassert.h"
-#include "log.h"
-#include "paging.h"
-#include "pmm.h"
-#include "vmm.h"
+#include "arch/paging.h"
+#include "libk/kassert.h"
+#include "libk/log.h"
+#include "mm/pmm.h"
+#include "mm/vmm.h"
 
 static u64 vmm_alloc_paging_structs(u64 addr);
 

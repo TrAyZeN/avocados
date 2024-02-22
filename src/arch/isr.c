@@ -1,6 +1,6 @@
-#include "apic.h"
 #include "attributes.h"
-#include "log.h"
+#include "drivers/apic.h"
+#include "libk/log.h"
 #include "types.h"
 
 #define DEF_ISR(VECTOR, HANDLER) _DEF_ISR(VECTOR, HANDLER)

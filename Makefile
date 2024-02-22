@@ -32,27 +32,27 @@ ISO := avocados.iso
 BIN := avocados.bin
 C_SRCS := \
 	 src/kmain.c \
-	 src/gdt.c \
-	 src/kprintf.c \
-	 src/framebuffer.c \
-	 src/idt.c \
-	 src/isr.c \
-	 src/pmm.c \
+	 src/arch/gdt.c \
+	 src/libk/kprintf.c \
+	 src/drivers/framebuffer.c \
+	 src/arch/idt.c \
+	 src/arch/isr.c \
+	 src/mm/pmm.c \
 	 src/multiboot_utils.c \
-	 src/panic.c \
-	 src/paging.c \
+	 src/libk/panic.c \
+	 src/arch/paging.c \
 	 src/backtrace.c \
-	 src/ubsan.c \
-	 src/vmm.c \
-	 src/serial.c \
-	 src/test.c \
-	 src/log.c \
-	 src/acpi.c \
+	 src/tools/ubsan.c \
+	 src/mm/vmm.c \
+	 src/drivers/serial.c \
+	 src/tools/test.c \
+	 src/libk/log.c \
+	 src/drivers/acpi.c \
 	 src/utils.c \
-	 src/apic.c \
-	 src/hpet.c \
-	 src/pci.c
-S_SRCS := src/boot.S
+	 src/drivers/apic.c \
+	 src/drivers/hpet.c \
+	 src/drivers/pci.c
+S_SRCS := src/arch/boot.S
 OBJS := $(C_SRCS:%.c=$(OBJS_DIR)/%.o) $(S_SRCS:%.S=$(OBJS_DIR)/%.o)
 DEPS := $(OBJS:%.o=%.d)
 

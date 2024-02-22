@@ -1,9 +1,9 @@
 #include "framebuffer.h"
-#include "kassert.h"
-#include "log.h"
-#include "pmm.h"
+#include "libk/kassert.h"
+#include "libk/log.h"
+#include "mm/pmm.h" // Only there for PAGE_SIZE
+#include "mm/vmm.h"
 #include "utils.h"
-#include "vmm.h"
 
 // Virtual address of framebuffer mapping
 #define FB_VIRT_ADDR 0x0000002000000000UL

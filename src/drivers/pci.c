@@ -1,6 +1,6 @@
-#include "instr.h"
-#include "kassert.h"
-#include "kprintf.h"
+#include "arch/instr.h"
+#include "libk/kassert.h"
+#include "libk/kprintf.h"
 #include "types.h"
 
 // All PCI specification references reference PCI Local Bus Specification 3.0.

@@ -4,7 +4,7 @@
 #include <stdbool.h>
 
 #include "attributes.h"
-#include "kassert.h"
+#include "libk/kassert.h"
 #include "types.h"
 #include "utils.h"
 

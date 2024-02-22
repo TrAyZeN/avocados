@@ -1,7 +1,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "kprintf.h"
+#include "libk/kprintf.h"
 #include "test.h"
 
 // This dummy test descriptor is put in its own section, used to align

@@ -1,7 +1,7 @@
 #include <stddef.h>
 
 #include "attributes.h"
-#include "kprintf.h"
+#include "libk/kprintf.h"
 #include "types.h"
 
 // https://github.com/llvm/llvm-project/blob/release/16.x/clang/lib/CodeGen/CodeGenFunction.h#L113*/
