@@ -1,6 +1,7 @@
 #include "arch/paging.h"
 #include "libk/kassert.h"
 #include "libk/log.h"
+#include "libk/mem.h"
 #include "mm/pmm.h"
 #include "mm/vmm.h"
 

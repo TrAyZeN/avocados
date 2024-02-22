@@ -4,6 +4,7 @@
 #include "libk/kassert.h"
 #include "libk/kprintf.h"
 #include "libk/log.h"
+#include "libk/string.h"
 #include "mm/vmm.h"
 #include "utils.h"
 

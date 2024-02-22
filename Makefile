@@ -48,10 +48,11 @@ C_SRCS := \
 	 src/tools/test.c \
 	 src/libk/log.c \
 	 src/drivers/acpi.c \
-	 src/utils.c \
 	 src/drivers/apic.c \
 	 src/drivers/hpet.c \
-	 src/drivers/pci.c
+	 src/drivers/pci.c \
+	 src/libk/string.c \
+	 src/libk/mem.c
 S_SRCS := src/arch/boot.S
 OBJS := $(C_SRCS:%.c=$(OBJS_DIR)/%.o) $(S_SRCS:%.S=$(OBJS_DIR)/%.o)
 DEPS := $(OBJS:%.o=%.d)
@@ -104,6 +105,6 @@ clean c:
 	$(RM) -r $(BUILD_DIR)
 
 fmt:
-	clang-format --style=file -i src/**.[ch]
+	clang-format --style=file -i src/**.{c,h}
 
 -include $(DEPS)

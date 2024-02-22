@@ -24,10 +24,6 @@ typedef struct {
     u64 offset;
 } __packed pseudo_descriptor64_t;
 
-void memset(u8 *mem, u8 value, u64 n);
-int strncmp(const char *s1, const char *s2, u64 n);
-u64 strlen(const char *s);
-
 // ALIGN must be a power of two
 /* #define ALIGN_UP(VALUE, ALIGN) ((VALUE) & ~((ALIGN)-1)) */
 // align VALUE to the next multiple of ALIGN

@@ -1,12 +1,4 @@
-#include "utils.h"
-
-// TODO: Avoid optimization ??
-// TODO: volatile
-void memset(u8 *mem, u8 value, u64 n) {
-    for (u64 i = 0; i < n; ++i) {
-        mem[i] = value;
-    }
-}
+#include "string.h"
 
 int strncmp(const char *s1, const char *s2, u64 n) {
     u64 i = 0;

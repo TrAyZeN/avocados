@@ -4,6 +4,8 @@
 #include "libk/kassert.h"
 #include "libk/kprintf.h"
 #include "libk/log.h"
+#include "libk/mem.h"
+#include "libk/string.h"
 #include "pmm.h"
 #include "types.h"
 #include "utils.h"

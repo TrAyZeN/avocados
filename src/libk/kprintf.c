@@ -3,6 +3,7 @@
 #include "drivers/serial.h"
 #include "kassert.h"
 #include "kprintf.h"
+#include "string.h"
 #include "types.h"
 #include "utils.h"
 
