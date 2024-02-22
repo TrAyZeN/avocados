@@ -3,6 +3,7 @@
 #include "arch/paging.h"
 #include "libk/kassert.h"
 #include "libk/kprintf.h"
+#include "libk/list.h"
 #include "libk/log.h"
 #include "libk/mem.h"
 #include "libk/string.h"
@@ -238,12 +239,12 @@ static void memory_map_reserve_range(memory_map_t *m, u64 base, u64 end) {
     return memory_map_reserve(m, base, (end - base) / PAGE_SIZE);
 }
 
-// Return the physical address of the allocated frame
+// Return the physical address of the allocated frame.
 // If unable to find a free frame, returns PMM_ALLOC_ERROR.
 u64 pmm_alloc(void) {
     u64 phys_addr = PMM_ALLOC_ERROR;
 
-    for (memory_map_t *m = memory_map; m != NULL; m = m->next) {
+    list_for_each(m, memory_map) {
         for (u64 i = 0; i < m->size; i++) {
             if (m->bitmap[i] != 0xffffffffffffffff) {
                 // Find first bit
@@ -269,7 +270,7 @@ u64 pmm_alloc(void) {
 void pmm_free(u64 addr) {
     kassert(addr % PAGE_SIZE == 0);
 
-    for (memory_map_t *m = memory_map; m != NULL; m = m->next) {
+    list_for_each(m, memory_map) {
         if (addr >= m->base_addr && addr < m->base_addr + m->len) {
             u64 frame_idx = (addr - m->base_addr) / PAGE_SIZE;
             m->bitmap[frame_idx / BITMAP_CELL_BITS] &=
