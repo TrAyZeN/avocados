@@ -8,6 +8,7 @@
 #include "libk/log.h"
 #include "libk/mem.h"
 #include "libk/string.h"
+#include "page_frame_cache.h"
 #include "pmm.h"
 #include "types.h"
 #include "utils.h"
@@ -17,14 +18,13 @@ extern u64 _ekern;
 
 extern pml4_t pml4;
 
-// TODO: Add free stack for fast alloc and free
-
 typedef struct memory_map {
     struct memory_map *next;
     // Base physical address of the memory region
     u64 base_addr;
     // Length in bytes of the memory region
     u64 len;
+    page_frame_cache_t cache;
     // Page frame allocation state of the memory region. Each bit corresponds to
     // a page frame with 0 = free and 1 = allocated.
     bitmap_t bitmap;
@@ -159,6 +159,7 @@ void pmm_init(const struct multiboot_tag_mmap *mmap_tag) {
         curr_memory_map->base_addr = available_mmap_entries[i].addr;
         curr_memory_map->len =
             ALIGN_DOWN(available_mmap_entries[i].len, PAGE_SIZE);
+        curr_memory_map->cache.count = 0;
         curr_memory_map->bitmap.size = curr_memory_map->len / PAGE_SIZE;
         memset((u8 *)&curr_memory_map->bitmap.chunks, 0,
                ALIGN_UP(curr_memory_map->bitmap.size, BITS_PER_BYTE)
@@ -238,6 +239,13 @@ u64 pmm_alloc(void) {
     u64 phys_addr = PMM_ALLOC_ERROR;
 
     list_for_each(m, memory_map) {
+        if (!page_frame_cache_is_empty(&m->cache)) {
+            phys_addr = page_frame_cache_pop(&m->cache);
+
+            bitmap_set(&m->bitmap, (phys_addr - m->base_addr) / PAGE_SIZE);
+            break;
+        }
+
         // Find first unallocated page frame
         for (u64 i = 0; i
              < ALIGN_UP(m->bitmap.size, BITMAP_CHUNK_BITS) / BITMAP_CHUNK_BITS;
@@ -262,12 +270,17 @@ u64 pmm_alloc(void) {
 
 // Free the frame at the given physical address.
 // Panic if invalid address is passed.
-void pmm_free(u64 addr) {
-    kassert(addr % PAGE_SIZE == 0);
+void pmm_free(u64 phys_addr) {
+    kassert(phys_addr % PAGE_SIZE == 0);
 
     list_for_each(m, memory_map) {
-        if (addr >= m->base_addr && addr < m->base_addr + m->len) {
-            bitmap_clear(&m->bitmap, (addr - m->base_addr) / PAGE_SIZE);
+        if (phys_addr >= m->base_addr && phys_addr < m->base_addr + m->len) {
+            if (!page_frame_cache_is_full(&m->cache)) {
+                page_frame_cache_push(&m->cache,
+                                      ALIGN_DOWN(phys_addr, PAGE_SIZE));
+            }
+
+            bitmap_clear(&m->bitmap, (phys_addr - m->base_addr) / PAGE_SIZE);
             return;
         }
     }
@@ -275,5 +288,5 @@ void pmm_free(u64 addr) {
     kpanic(
         "pmm: Cannot free frame at 0x%016lx which is outside of mapped memory "
         "regions\n",
-        addr);
+        phys_addr);
 }
