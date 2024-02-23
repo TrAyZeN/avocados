@@ -52,7 +52,8 @@ C_SRCS := \
 	 src/drivers/hpet.c \
 	 src/drivers/pci.c \
 	 src/libk/string.c \
-	 src/libk/mem.c
+	 src/libk/mem.c \
+	 src/libk/bitmap.c
 S_SRCS := src/arch/boot.S
 OBJS := $(C_SRCS:%.c=$(OBJS_DIR)/%.o) $(S_SRCS:%.S=$(OBJS_DIR)/%.o)
 DEPS := $(OBJS:%.o=%.d)

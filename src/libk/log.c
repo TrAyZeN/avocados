@@ -1,7 +1,8 @@
+#include "log.h"
+
 #include <stdarg.h>
 
 #include "kprintf.h"
-#include "log.h"
 
 static const char *level_str[] = {
     [LOG_LEVEL_NONE] = "NONE",   [LOG_LEVEL_ERROR] = "ERROR",

@@ -1,8 +1,9 @@
+#include "panic.h"
+
 #include <stdarg.h>
 
 #include "arch/instr.h"
 #include "kprintf.h"
-#include "panic.h"
 
 // TODO: Mark kpanic function as cold
 

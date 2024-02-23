@@ -1,6 +1,7 @@
 #include <stddef.h>
 
 #include "arch/paging.h"
+#include "libk/bitmap.h"
 #include "libk/kassert.h"
 #include "libk/kprintf.h"
 #include "libk/list.h"
@@ -24,14 +25,10 @@ typedef struct memory_map {
     u64 base_addr;
     // Length in bytes of the memory region
     u64 len;
-    // Bitmap size in 64 bits chunks
-    u64 size;
-    // A bitmap representing page frame availability. Each bit corresponds to a
-    // page frame with 0 = free and 1 = allocated.
-    u64 bitmap[];
+    // Page frame allocation state of the memory region. Each bit corresponds to
+    // a page frame with 0 = free and 1 = allocated.
+    bitmap_t bitmap;
 } memory_map_t;
-
-#define BITMAP_CELL_BITS (sizeof(((memory_map_t *)0)->bitmap[0]) * 8)
 
 static void memory_map_reserve(memory_map_t *memory_map, u64 base,
                                u64 num_frames);
@@ -88,7 +85,7 @@ void pmm_init(const struct multiboot_tag_mmap *mmap_tag) {
         // Compute memory_map_t size with flexible array member
         u64 memory_map_size = sizeof(memory_map_t)
             + ALIGN_UP(available_mmap_entries[i].len,
-                       PAGE_SIZE * BITMAP_CELL_BITS)
+                       PAGE_SIZE * BITMAP_CHUNK_BITS)
                 / (PAGE_SIZE * 8);
 
         // TODO: Improve first check
@@ -162,11 +159,10 @@ void pmm_init(const struct multiboot_tag_mmap *mmap_tag) {
         curr_memory_map->base_addr = available_mmap_entries[i].addr;
         curr_memory_map->len =
             ALIGN_DOWN(available_mmap_entries[i].len, PAGE_SIZE);
-        curr_memory_map->size =
-            ALIGN_UP(curr_memory_map->len / PAGE_SIZE, BITMAP_CELL_BITS)
-            / BITMAP_CELL_BITS;
-        memset((u8 *)&curr_memory_map->bitmap, 0,
-               curr_memory_map->size * sizeof(curr_memory_map->bitmap[0]));
+        curr_memory_map->bitmap.size = curr_memory_map->len / PAGE_SIZE;
+        memset((u8 *)&curr_memory_map->bitmap.chunks, 0,
+               ALIGN_UP(curr_memory_map->bitmap.size, BITS_PER_BYTE)
+                   / BITS_PER_BYTE);
 
         kassert(curr_memory_map->len % PAGE_SIZE == 0);
         kassert(curr_memory_map->base_addr % PAGE_SIZE == 0);
@@ -194,16 +190,16 @@ void pmm_init(const struct multiboot_tag_mmap *mmap_tag) {
         // Bitmap are u64 but the memory region length may not be a
         // multiple of PAGE_SIZE * 64, so we need to mark these frames as
         // allocated.
-        for (u64 frame_idx = curr_memory_map->len / PAGE_SIZE;
-             frame_idx < curr_memory_map->size * BITMAP_CELL_BITS;
+        for (u64 frame_idx = curr_memory_map->bitmap.size; frame_idx
+             < ALIGN_UP(curr_memory_map->bitmap.size, BITMAP_CHUNK_BITS);
              ++frame_idx) {
-            curr_memory_map->bitmap[frame_idx / BITMAP_CELL_BITS] |= 1UL
-                << (frame_idx % BITMAP_CELL_BITS);
+            curr_memory_map->bitmap.chunks[frame_idx / BITMAP_CHUNK_BITS] |= 1UL
+                << (frame_idx % BITMAP_CHUNK_BITS);
         }
 
         // TODO: Remove that
         if (first) {
-            kprintf("0x%016lx\n", curr_memory_map->bitmap[0]);
+            kprintf("0x%016lx\n", curr_memory_map->bitmap.chunks[0]);
         }
 
         prev_memory_map = curr_memory_map;
@@ -214,6 +210,7 @@ void pmm_init(const struct multiboot_tag_mmap *mmap_tag) {
     log(LOG_LEVEL_INFO, "PMM: PMM initialized\n");
 }
 
+// It is assumed that the range is unallocated
 // base is a physical address
 static void memory_map_reserve(memory_map_t *m, u64 base, u64 num_frames) {
     // Check alignment
@@ -222,11 +219,7 @@ static void memory_map_reserve(memory_map_t *m, u64 base, u64 num_frames) {
     kassert(base >= m->base_addr
             && base + num_frames * PAGE_SIZE < m->base_addr + m->len);
 
-    u64 base_frame = (base - m->base_addr) / PAGE_SIZE;
-    for (u64 frame_idx = 0; frame_idx < num_frames; ++frame_idx) {
-        m->bitmap[(base_frame + frame_idx) / BITMAP_CELL_BITS] |= 1UL
-            << ((base_frame + frame_idx) % BITMAP_CELL_BITS);
-    }
+    bitmap_set_range(&m->bitmap, (base - m->base_addr) / PAGE_SIZE, num_frames);
 }
 
 // end excluded
@@ -245,15 +238,17 @@ u64 pmm_alloc(void) {
     u64 phys_addr = PMM_ALLOC_ERROR;
 
     list_for_each(m, memory_map) {
-        for (u64 i = 0; i < m->size; i++) {
-            if (m->bitmap[i] != 0xffffffffffffffff) {
-                // Find first bit
-                for (u64 j = 0; j < BITMAP_CELL_BITS; j++) {
-                    if (((m->bitmap[i] >> j) & 1) == 0) {
-                        m->bitmap[i] |= (1UL << j);
+        // Find first unallocated page frame
+        for (u64 i = 0; i
+             < ALIGN_UP(m->bitmap.size, BITMAP_CHUNK_BITS) / BITMAP_CHUNK_BITS;
+             ++i) {
+            if (m->bitmap.chunks[i] != 0xffffffffffffffff) {
+                for (u64 j = 0; j < BITMAP_CHUNK_BITS; j++) {
+                    if (((m->bitmap.chunks[i] >> j) & 1) == 0) {
+                        m->bitmap.chunks[i] |= (1UL << j);
 
                         phys_addr = m->base_addr
-                            + (i * BITMAP_CELL_BITS + j) * PAGE_SIZE;
+                            + (i * BITMAP_CHUNK_BITS + j) * PAGE_SIZE;
 
                         break;
                     }
@@ -272,9 +267,7 @@ void pmm_free(u64 addr) {
 
     list_for_each(m, memory_map) {
         if (addr >= m->base_addr && addr < m->base_addr + m->len) {
-            u64 frame_idx = (addr - m->base_addr) / PAGE_SIZE;
-            m->bitmap[frame_idx / BITMAP_CELL_BITS] &=
-                ~(1UL << (frame_idx % BITMAP_CELL_BITS));
+            bitmap_clear(&m->bitmap, (addr - m->base_addr) / PAGE_SIZE);
             return;
         }
     }

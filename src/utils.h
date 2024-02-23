@@ -26,11 +26,15 @@ typedef struct {
 
 // ALIGN must be a power of two
 /* #define ALIGN_UP(VALUE, ALIGN) ((VALUE) & ~((ALIGN)-1)) */
-// align VALUE to the next multiple of ALIGN
+
 // TODO: Inline function
-#define ALIGN_UP(VALUE, ALIGN) ((((VALUE) + (ALIGN)-1U) / (ALIGN)) * (ALIGN))
-#define ALIGN_DOWN(VALUE, ALIGN) (((VALUE) / (ALIGN)) * (ALIGN))
+// Set VALUE to closest multiple of ALIGN that is greater than or equal to VALUE
+#define ALIGN_UP(VALUE, ALIGN) ((((VALUE) + (ALIGN)-1UL) / (ALIGN)) * (ALIGN))
+_Static_assert(ALIGN_UP(4095, 4096) == 4096, "ALIGN_UP test");
 _Static_assert(ALIGN_UP(4096, 4096) == 4096, "ALIGN_UP test");
+// Set VALUE to closest multiple of ALIGN that is less than or equal to VALUE
+#define ALIGN_DOWN(VALUE, ALIGN) (((VALUE) / (ALIGN)) * (ALIGN))
+_Static_assert(ALIGN_DOWN(4097, 4096) == 4096, "ALIGN_DOWN test");
 _Static_assert(ALIGN_DOWN(4096, 4096) == 4096, "ALIGN_DOWN test");
 
 // TODO: Assert that START <= END
