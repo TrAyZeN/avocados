@@ -46,7 +46,7 @@ void kvprintf(const char *fmt, va_list ap) {
     char int_buf[23];
     unsigned long long arg;
     enum length_modifier length_modifier;
-    u8 base;
+    u8 base = 0;
     char padding_char;
     u64 field_width;
     u64 num_field_length;
@@ -158,6 +158,13 @@ void kvprintf(const char *fmt, va_list ap) {
                 puts(s);
                 break;
             }
+            case 'p':
+                arg = (unsigned long long)va_arg(ap, void *);
+                num_field_length = num_to_str(arg, int_buf, 8, false, false);
+                puts("0x");
+                pad(num_field_length, field_width, padding_char);
+                puts(int_buf);
+                break;
             case '%':
             default:
                 // TODO: Handle modifiers here
